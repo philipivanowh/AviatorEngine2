@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../libLLVMDxrFallback.a CMakeFiles/LLVMDxrFallback.dir/DxrFallbackCompiler.cpp.o CMakeFiles/LLVMDxrFallback.dir/LiveValues.cpp.o CMakeFiles/LLVMDxrFallback.dir/LLVMUtils.cpp.o CMakeFiles/LLVMDxrFallback.dir/Reducibility.cpp.o CMakeFiles/LLVMDxrFallback.dir/StateFunctionTransform.cpp.o
+/usr/bin/ranlib ../libLLVMDxrFallback.a

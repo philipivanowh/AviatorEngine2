@@ -1,0 +1,3 @@
+/Users/lansmachine/Documents/Github/AviatorEngine2/build/CMakeFiles/app.dir
+/Users/lansmachine/Documents/Github/AviatorEngine2/build/CMakeFiles/edit_cache.dir
+/Users/lansmachine/Documents/Github/AviatorEngine2/build/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../libLLVMDxilCompression.a CMakeFiles/LLVMDxilCompression.dir/DxilCompression.cpp.o CMakeFiles/LLVMDxilCompression.dir/miniz.c.o
+/usr/bin/ranlib ../libLLVMDxilCompression.a

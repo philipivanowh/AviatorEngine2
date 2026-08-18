@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "../libLLVMDxilPIXPasses.a"
+  "../libLLVMDxilPIXPasses.pdb"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilAddPixelHitInstrumentation.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilAddPixelHitInstrumentation.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilAnnotateWithVirtualRegister.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilAnnotateWithVirtualRegister.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilDbgValueToDbgDeclare.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilDbgValueToDbgDeclare.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilDebugInstrumentation.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilDebugInstrumentation.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilForceEarlyZ.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilForceEarlyZ.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilNonUniformResourceIndexInstrumentation.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilNonUniformResourceIndexInstrumentation.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilOutputColorBecomesConstant.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilOutputColorBecomesConstant.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXAddTidToAmplificationShaderPayload.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXAddTidToAmplificationShaderPayload.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXDXRInvocationsLog.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXDXRInvocationsLog.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXMeshShaderOutputInstrumentation.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXMeshShaderOutputInstrumentation.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXPasses.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXPasses.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXVirtualRegisters.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilPIXVirtualRegisters.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilReduceMSAAToSingleSample.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilReduceMSAAToSingleSample.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilRemoveDiscards.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilRemoveDiscards.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilShaderAccessTracking.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/DxilShaderAccessTracking.cpp.o.d"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/PixPassHelpers.cpp.o"
+  "CMakeFiles/LLVMDxilPIXPasses.dir/PixPassHelpers.cpp.o.d"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/LLVMDxilPIXPasses.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

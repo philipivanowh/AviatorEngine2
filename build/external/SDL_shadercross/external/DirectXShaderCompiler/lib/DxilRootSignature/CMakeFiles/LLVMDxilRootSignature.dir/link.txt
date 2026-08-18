@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../libLLVMDxilRootSignature.a CMakeFiles/LLVMDxilRootSignature.dir/DxilRootSignature.cpp.o CMakeFiles/LLVMDxilRootSignature.dir/DxilRootSignatureConvert.cpp.o CMakeFiles/LLVMDxilRootSignature.dir/DxilRootSignatureSerializer.cpp.o CMakeFiles/LLVMDxilRootSignature.dir/DxilRootSignatureValidator.cpp.o
+/usr/bin/ranlib ../libLLVMDxilRootSignature.a
