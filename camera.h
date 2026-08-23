@@ -28,7 +28,7 @@ public:
         this->yaw = yaw;
         this->pitch = pitch;
         this->focus_dist = 10.0f;
-        this->fov = 20.0f;
+        this->fov = 40.0f;
         this->defocus_angle = 0.2f;
     }
 
@@ -81,7 +81,7 @@ public:
     }
 
 private:
-    const float CAMERA_MOVE_SPEED = 4.0f; // units/sec at normal (non-sprint) speed
+    const float CAMERA_MOVE_SPEED = 40.0f; // units/sec at normal (non-sprint) speed
     const float CAMERA_SPRINT_MULTIPLIER = 3.0f;
     const float MOUSE_SENSITIVITY = 0.0025f; // radians of turn per pixel of mouse delta
     const float PITCH_LIMIT = 1.5533f;       // ~89 degrees; stops the camera flipping over at the poles

@@ -2,11 +2,15 @@
 #define LAMBERTIAN 0
 #define METAL 1
 #define DIAELECTRIC 2
+#define DIFFUSE_LIGHT 3
+
+#define SphereShapeType 0
+#define QuadShapeType 1
 #define TAU 6.2831853f
 #define PI 3.14159265f
 
 // Max BVH depth the traversal stack can hold. 32 is comfortable for
-// thousands of spheres with the median-split builder in bvh.h; bump it
+// thousands of objects with the median-split builder in bvh.h; bump it
 // if you build much larger/unbalanced trees.
 #define BVH_STACK_SIZE 32
 
@@ -21,21 +25,34 @@ struct Ray
     }
 };
 
-struct Sphere
+struct Object
 {
     float3 Position;
     float pad0;
 
     float3 Position2;
+
     float Radius;
+
+    float3 vector_u;
+    float pad1;
+    float3 vector_v;
+    float pad2;
+
+    float3 offset;
+    float pad3;
+
+    float angle;
+    float3 pad4;
 
     float3 Albedo;
     float Fuzz;
 
     float Refraction;
-    uint Type;
+
+    uint ShapeType;
+    uint ColorType;
     uint TextureID;
-    uint Padding;
 };
 
 // Matches BVHNode in bvh.h byte-for-byte.
@@ -60,7 +77,7 @@ struct Hit
     float3 Normal;
     float2 surface_uv;
     bool Face;
-    Sphere Object;
+    Object Object;
     uint materialId;
 };
 
@@ -88,7 +105,7 @@ cbuffer UniformBuffer : register(b0, space2)
 Texture2DArray GlobalTextureArray : register(t0, space0);
 SamplerState GlobalSampler : register(s0, space0);
 
-StructuredBuffer<Sphere> spheres : register(t64, space0);
+StructuredBuffer<Object> objects : register(t64, space0);
 StructuredBuffer<BVHNode> bvh : register(t65, space0);
 
 [[vk::image_format("rgba32f")]]
@@ -122,21 +139,29 @@ float3 RandomDirection()
 //             return isEven ? even->value(u, v, p) : odd->value(u, v, p);
 // }
 
+float2 get_sphere_uv(float3 p){
+    float theta = acos(-p.y);
+    float phi = atan2(-p.z, p.x) + PI;
+
+    return float2(phi/(2*PI),theta / PI);
+}
+
 bool HitSphere(
-    const in Sphere sphere,
+    const in Object object,
     const in Ray ray,
     const in float near,
     const in float far,
     out Hit hit)
 {
-    // Center of the sphere at this ray's sampled time - covers both
+
+    // Center of the object at this ray's sampled time - covers both
     // motion-blur (Position2 = shutter-close position) and per-frame
     // physics motion (Position2 = last frame's position) the same way.
-    const float3 currentCenter = lerp(sphere.Position, sphere.Position2, ray.GetTime());
+    const float3 currentCenter = lerp(object.Position, object.Position2, ray.GetTime());
     const float3 offset = currentCenter - ray.Origin;
     const float a = dot(ray.Direction, ray.Direction);
     const float b = dot(ray.Direction, offset);
-    const float radius2 = sphere.Radius * sphere.Radius;
+    const float radius2 = object.Radius * object.Radius;
     const float c = dot(offset, offset) - radius2;
     const float discriminant = b * b - a * c;
     if (discriminant < 0.0f)
@@ -154,17 +179,82 @@ bool HitSphere(
             return false;
         }
     }
+    hit.surface_uv = get_sphere_uv(hit.Normal); 
     hit.Offset = root;
+
     hit.Position = ray.Origin + ray.Direction * root;
-    hit.Normal = (hit.Position - currentCenter) / sphere.Radius;
+    hit.Normal = (hit.Position - currentCenter) / object.Radius;
     hit.Face = dot(ray.Direction, hit.Normal) < 0.0f;
     if (!hit.Face)
     {
         hit.Normal = -hit.Normal;
     }
-    hit.Object = sphere;
+    hit.Object = object;
+
+    //Reverse transform for position and rotation
+    hit.Position = float3(cos(object.angle) * hit.Position.x + sin(object.angle) * hit.Position.z, hit.Position.y, -sin(object.angle) * hit.Position.x + cos(object.angle) * hit.Position.z);
+    hit.Normal = float3(cos(object.angle) * hit.Normal.x + sin(object.angle) * hit.Normal.z, hit.Normal.y, -sin(object.angle) * hit.Normal.x + cos(object.angle) * hit.Normal.z);
+
+   
+    
     return true;
 }
+
+bool HitQuad(
+    const in Object quad,
+    const in Ray ray,
+    const in float near,
+    const in float far,
+    out Hit hit)
+{
+    const float3 quadNormal = cross(quad.vector_u, quad.vector_v);
+    const float normalLenSq = dot(quadNormal, quadNormal);
+
+    // Degenerate quad (U and V parallel/zero) - can't form a plane.
+    if (normalLenSq < 1e-8f)
+        return false;
+
+    const float3 unitNormal = quadNormal / sqrt(normalLenSq);
+    const float3 w = quadNormal / normalLenSq;
+
+    const float D = dot(quadNormal, quad.Position);
+    const float denom = dot(quadNormal, ray.Direction);
+
+    // Ray parallel to the quad's plane.
+    if (abs(denom) < 1e-8f)
+        return false;
+
+    const float t = (D - dot(quadNormal, ray.Origin)) / denom;
+
+    // Same role as ray.Contains(t) in the book - reject hits outside
+    // the valid [near, far] window for this traversal step.
+    if (t < near || t > far)
+        return false;
+
+    const float3 intersection = ray.Origin + ray.Direction * t;
+
+    // Plane-local (alpha, beta) coordinates of the hit point.
+    const float3 planarHitVector = intersection - quad.Position;
+    const float alpha = dot(w, cross(planarHitVector, quad.vector_v));
+    const float beta  = dot(w, cross(quad.vector_u, planarHitVector));
+
+    // Inside the [0,1]x[0,1] parallelogram spanned by U and V.
+    if (alpha < 0.0f || alpha > 1.0f || beta < 0.0f || beta > 1.0f)
+        return false;
+    
+    hit.surface_uv = float2(alpha, beta);
+    hit.Offset = t;
+    hit.Position = intersection;
+    hit.Normal = unitNormal;
+    hit.Face = dot(ray.Direction, hit.Normal) < 0.0f;
+    if (!hit.Face)
+    {
+        hit.Normal = -hit.Normal;
+    }
+    hit.Object = quad;
+    return true;
+}
+ 
 
 // Slab-test ray/AABB intersection. invDir is precomputed once per ray by
 // the caller since it's reused across every node visited.
@@ -185,8 +275,8 @@ bool IntersectAABB(
     return tmin <= tmax;
 }
 
-// Finds the closest sphere hit along `ray`, traversing the BVH instead
-// of scanning every sphere. HLSL has no recursion, so this uses a small
+// Finds the closest object hit along `ray`, traversing the BVH instead
+// of scanning every object. HLSL has no recursion, so this uses a small
 // fixed-size array as an explicit stack. Node 0 is always the root
 // (see BuildBVH in bvh.h).
 bool TraverseBVH(const in Ray ray, const in float near, out Hit hit)
@@ -211,16 +301,31 @@ bool TraverseBVH(const in Ray ray, const in float near, out Hit hit)
 
         if (node.Count > 0)
         {
-            // Leaf: test its spheres directly.
+            // Leaf: test its objects directly.
             for (int i = 0; i < node.Count; i++)
             {
                 Hit h;
-                if (HitSphere(spheres[node.Left + i], ray, near, far, h))
-                {
-                    far = h.Offset;
-                    hit = h;
-                    found = true;
+                Ray ray_transformed;
+                ray_transformed.Origin = float3((sin(objects[node.Left + i].angle) * ray.Origin.x) - (cos(objects[node.Left + i].angle) * ray.Origin.z), ray.Origin.y, (sin(objects[node.Left + i].angle) * ray.Origin.x) + (cos(objects[node.Left + i].angle) * ray.Origin.z));
+                ray_transformed.Direction = float3((sin(objects[node.Left + i].angle) * ray.Direction.x) - (cos(objects[node.Left + i].angle) * ray.Direction.z), ray.Origin.y, (sin(objects[node.Left + i].angle) * ray.Direction.x) + (cos(objects[node.Left + i].angle) * ray.Direction.z));
+                ray_transformed.time = ray.GetTime();
+
+                if(objects[node.Left + i].ShapeType == 0){
+                    if (HitSphere(objects[node.Left + i], ray_transformed, near, far, h))
+                    {
+                        far = h.Offset;
+                        hit = h;
+                        found = true;
+                    }
+                }else if(objects[node.Left + i].ShapeType == 1){
+                    if(HitQuad(objects[node.Left + i], ray_transformed, near, far, h))
+                    {
+                        far = h.Offset;
+                        hit = h;
+                        found = true;
+                    }
                 }
+
             }
         }
         else
@@ -244,12 +349,7 @@ float3 textureColor(uint textureID, float2 uv)
     ).rgb;
 }
 
-float2 get_sphere_uv(float3 p){
-    float theta = acos(-p.y);
-    float phi = atan2(-p.z, p.x) + PI;
 
-    return float2(phi/(2*PI),theta / PI);
-}
 
 bool GetBounce(
     const in Ray ray,
@@ -258,17 +358,11 @@ bool GetBounce(
     out float3 color)
 {
     if (hit.Object.TextureID != 0xFFFFFFFFu)
-{
-    color = textureColor(
-        hit.Object.TextureID,
-        get_sphere_uv(hit.Normal)
-    );
-}
-else
-{
-    color = hit.Object.Albedo;
-}
-    switch (hit.Object.Type)
+        color = textureColor(hit.Object.TextureID, hit.surface_uv);
+    else
+        color = hit.Object.Albedo;
+
+    switch (hit.Object.ColorType)
     {
     case LAMBERTIAN:
         bounce = hit.Normal + RandomDirection();
@@ -282,6 +376,7 @@ else
         bounce += RandomDirection() * hit.Object.Fuzz;
         return dot(bounce, hit.Normal) > 0.0f;
     case DIAELECTRIC:
+    {
         color = 1.0f;
         const float m = hit.Object.Refraction;
         float ri = m;
@@ -303,6 +398,13 @@ else
         }
         return true;
     }
+
+    case DIFFUSE_LIGHT:
+    {
+        return true;
+    }
+
+    }
     return false;
 }
 
@@ -315,11 +417,12 @@ float3 random_in_unit_disk() {
     }
 }
 
- float3 defocus_disk_sample(float3 defocus_disk_u, float3 defocus_disk_v) {
+float3 defocus_disk_sample(float3 defocus_disk_u, float3 defocus_disk_v) {
         // Returns a random point in the camera defocus disk.
         float3 p = random_in_unit_disk();
         return Source + (p.x * defocus_disk_u) + (p.y * defocus_disk_v);
 }
+
 
 [numthreads(THREADS, 1, 1)]
 void main(uint3 globalInvocationID : SV_DispatchThreadID)
@@ -359,17 +462,27 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
             const bool status = TraverseBVH(ray, 0.001f, hit);
             if (!status)
             {
-                const float y = ray.Direction.y * 0.5f + 0.5f;
-                attenuation *= (1.0f - y) * Horizon + y * Sky;
+                //attenuation *= (1.0f - y) * Horizon + y * Sky;
+                attenuation = Sky;
                 break;
             }
             float3 bounce;
             float3 albedo;
+            float3 emitted = 0.0f;
+            if (hit.Object.ColorType == DIFFUSE_LIGHT)
+            {
+                const float3 base = (hit.Object.TextureID != 0xFFFFFFFFu)
+                ? textureColor(hit.Object.TextureID, hit.surface_uv)
+                : hit.Object.Albedo;
+                emitted = base * hit.Object.Fuzz;   // Fuzz doubles as light intensity here
+            }
+            color += attenuation * emitted;
+
             if (!GetBounce(ray, hit, bounce, albedo))
             {
-                attenuation = 0.0f;
-                break;
+                 break;  
             }
+
             ray.Origin = hit.Position;
             ray.Direction = bounce;
             attenuation *= albedo;

@@ -1,6 +1,11 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
+#define LAMBERTIAN 0
+#define METAL 1
+#define DIAELECTRIC 2
+#define DIFFUSE_LIGHT 3
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 

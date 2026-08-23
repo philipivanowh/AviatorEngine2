@@ -25,6 +25,12 @@ public:
         stbi_image_free(cpuPixels);
     }
 
+    Texture(SDL_GPUDevice *device, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255)
+    {
+        const unsigned char pixel[4] = {r, g, b, a};
+        Texture(device, pixel, 1, 1);
+    }
+
     // Builds a texture directly from raw RGBA8 pixel data already in memory -
     // no file, no stb_image. Used for procedural/fallback textures such as
     // the default white texture padded into unused GlobalTextures[] slots.

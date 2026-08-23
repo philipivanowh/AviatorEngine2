@@ -6,10 +6,7 @@
 #include <numeric>
 #include <vector>
 
-#define LAMBERTIAN 0
-#define METAL 1
-#define DIAELECTRIC 2
-
+#include "aabb.h"
 
 #define BVH_LEAF_SIZE 4
 
@@ -30,39 +27,46 @@ struct BVHNode_GPU
     Sint32 pad_trailing;
 };
 
-// Bounds a sphere across its motion this frame - the swept volume the
-// BVH node must contain so a ray sampled at any time in [0,1] still
-// finds it. If the sphere isn't moving (x2,y2,z2 == x,y,z) this just
-// collapses to the ordinary sphere bounds.
-inline AABB SphereBounds(const Sphere_GPU &s)
+class BVH_node
 {
-    AABB box{
-        s.x - s.radius, s.y - s.radius, s.z - s.radius,
-        s.x + s.radius, s.y + s.radius, s.z + s.radius};
-    box = SurroundPoint(box, s.x2 - s.radius, s.y2 - s.radius, s.z2 - s.radius);
-    box = SurroundPoint(box, s.x2 + s.radius, s.y2 + s.radius, s.z2 + s.radius);
-    return box;
-}
+
+public:
+    AABB bbox;
+    int left;
+    int right;
+    int count;
+
+    BVH_node(AABB bbox, int left, int right, int count) : bbox(bbox), left(left), right(right), count(count){
+
+    }
+
+    BVHNode_GPU CreateBVHNodeGPU()
+    {
+        return BVHNode_GPU{
+            .min_x = this->bbox.min_x,
+            .min_y = this->bbox.min_y,
+            .min_z = this->bbox.min_z,
+
+            .min_x = this->bbox.max_x,
+            .min_y = this->bbox.max_y,
+            .min_x = this->bbox.max_z,
+
+            .left = this->left,
+            .right = this->right,
+            .count = this->count};
+    }
+};
 
 namespace detail
 {
-    // Recursively builds a BVH over `spheres[indices[start..end)]`,
-    // appending flattened nodes to `outNodes` and a leaf-contiguous copy
-    // of the spheres to `outSpheres`. Returns the index of the node it
-    // just created within `outNodes`.
-    //
-    // Split strategy follows Ray Tracing: The Next Week's approach: pick
-    // the axis the current range's bounding box is longest along, split
-    // at the median centroid on that axis. O(n log n), no SAH, but more
-    // than good enough to rebuild every frame for a few hundred spheres.
     inline int BuildRecursive(
         std::vector<int> &indices,
         int start,
         int end,
-        const std::vector<Sphere_GPU> &spheres,
+        const std::vector<std::unique_ptr<Object>> &objects,
         const std::vector<AABB> &bounds,
-        std::vector<BVHNode_GPU> &outNodes,
-        std::vector<Sphere_GPU> &outSpheres)
+        std::vector<BVH_node *> &outNodes,
+        std::vector<Object *> &outObjects)
     {
         AABB box = AABB::Empty();
         for (int i = start; i < end; i++)
@@ -71,20 +75,18 @@ namespace detail
         }
 
         const int nodeIndex = static_cast<int>(outNodes.size());
-        outNodes.push_back(BVHNode_GPU{}); // placeholder, patched below
+        //outNodes.push_back(BVH_node);
 
         const int count = end - start;
         if (count <= BVH_LEAF_SIZE)
         {
-            const int first = static_cast<int>(outSpheres.size());
+            const int first = static_cast<int>(outObjects.size());
             for (int i = start; i < end; i++)
             {
-                outSpheres.push_back(spheres[indices[i]]);
+                outObjects.push_back(objects[indices[i]].get());
             }
-            outNodes[nodeIndex] = BVHNode_GPU{
-                box.min_x, box.min_y, box.min_z, 0,
-                box.max_x, box.max_y, box.max_z, first,
-                -1, count, 0, 0};
+            outNodes[nodeIndex] = new BVH_node(box,first,-1,count);
+
             return nodeIndex;
         }
 
@@ -99,46 +101,42 @@ namespace detail
                 return bounds[a].Centroid(axis) < bounds[b].Centroid(axis);
             });
 
-        const int left = BuildRecursive(indices, start, mid, spheres, bounds, outNodes, outSpheres);
-        const int right = BuildRecursive(indices, mid, end, spheres, bounds, outNodes, outSpheres);
+        const int left = BuildRecursive(indices, start, mid, objects, bounds, outNodes, outObjects);
+        const int right = BuildRecursive(indices, mid, end, objects, bounds, outNodes, outObjects);
 
-        outNodes[nodeIndex] = BVHNode_GPU{
-            box.min_x, box.min_y, box.min_z, 0,
-            box.max_x, box.max_y, box.max_z, left,
-            right, 0, 0, 0};
+
+        outNodes[nodeIndex] = new BVH_node(box,left,right,0);
+        
         return nodeIndex;
     }
 }
 
-// Builds a BVH over `spheres`. Call this fresh every frame after
-// stepping physics/motion - it's cheap compared to a GPU rebuild for
-// scenes of a few hundred to a few thousand spheres, and much simpler.
 inline void BuildBVH(
-    const std::vector<Sphere_GPU> &spheres,
-    std::vector<BVHNode_GPU> &outNodes,
-    std::vector<Sphere_GPU> &outSpheres)
+    const std::vector<std::unique_ptr<Object>> &objects,
+    std::vector<BVH_node *> &outNodes,
+    std::vector<Object *> &outObjects)
 {
     outNodes.clear();
-    outSpheres.clear();
+    outObjects.clear();
 
-    if (spheres.empty())
+    if (objects.empty())
     {
         return;
     }
 
-    outNodes.reserve(spheres.size() * 2);
-    outSpheres.reserve(spheres.size());
+    outNodes.reserve(objects.size() * 2);
+    outObjects.reserve(objects.size());
 
-    std::vector<AABB> bounds(spheres.size());
-    for (size_t i = 0; i < spheres.size(); i++)
+    std::vector<AABB> bounds(objects.size());
+    for (size_t i = 0; i < objects.size(); i++)
     {
-        bounds[i] = SphereBounds(spheres[i]);
+        bounds[i] = objects[i]->Bounds();
     }
 
-    std::vector<int> indices(spheres.size());
+    std::vector<int> indices(objects.size());
     std::iota(indices.begin(), indices.end(), 0);
 
-    detail::BuildRecursive(indices, 0, static_cast<int>(indices.size()), spheres, bounds, outNodes, outSpheres);
+    detail::BuildRecursive(indices, 0, static_cast<int>(indices.size()), objects, bounds, outNodes, outObjects);
 }
 
 #endif BVH_H

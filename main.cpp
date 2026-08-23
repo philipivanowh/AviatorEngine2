@@ -14,11 +14,11 @@
 #include "texture.h"
 
 #define THREADS 256
- #define SCENE_SPHERES (4 + 22 * 22)
+#define SCENE_OBJECTS (4 + 22 * 22)
 
 // #define SCENE_SPHERES (4)
-#define MAX_SPHERES SCENE_SPHERES
-#define MAX_NODES (MAX_SPHERES * 2) // safe upper bound for a binary tree over MAX_SPHERES leaves
+#define MAX_OBJECTS SCENE_OBJECTS
+#define MAX_NODES (MAX_OBJECTS * 2) // safe upper bound for a binary tree over MAX_SPHERES leaves
 #define TARGET_FPS 60.0
 
 struct Config
@@ -54,19 +54,21 @@ struct Config
 
 struct SceneBuffers
 {
-    SDL_GPUBuffer *sphereBuffer;
+    SDL_GPUBuffer *objectBuffer;
     SDL_GPUBuffer *bvhBuffer;
     SDL_GPUBuffer *textureBuffer;
-    SDL_GPUTransferBuffer *sphereTransfer;
+    SDL_GPUTransferBuffer *objectTransfer;
     SDL_GPUTransferBuffer *bvhTransfer;
     SDL_GPUTransferBuffer *textureTransfer;
 };
 
 SDL_GPUDevice *device;
 
-std::vector<Sphere_GPU> spheres;
+std::vector<std::unique_ptr<Object>> objects;
+std::vector<Object_GPU> objects_GPU;
 std::vector<Texture *> textures;
-Uint32 textureIDCounter = 0;
+Uint32 textureIDCounter;
+
 
 SDL_GPUComputePipeline *CreateComputePipeline(SDL_GPUDevice *device)
 {
@@ -126,67 +128,32 @@ SDL_GPUComputePipeline *CreateComputePipeline(SDL_GPUDevice *device)
     return pipeline;
 }
 
-void CreateSphere(point3 pos, point3 pos2, float radius, Uint32 type, Material mat)
-{
-
-    Sphere_GPU sphereGPU = Sphere_GPU{
-        .x = pos.x,
-        .y = pos.y,
-        .z = pos.z,
-        .x2 = pos2.x,
-        .y2 = pos2.y,
-        .z2 = pos2.z,
-        .radius = radius,
-        .r = mat.color.x,
-        .g = mat.color.y,
-        .b = mat.color.z,
-        .fuzz = mat.fuzz,
-        .refraction = mat.refraction,
-        .type = mat.type,
-    };
-    if (!mat.texture)
-    {
-        sphereGPU.textureID = -1;
-    }
-    else
-    {
-        sphereGPU.textureID = textureIDCounter;
-        textures.push_back(mat.texture);
-        textureIDCounter++;
-    }
-
-    spheres.push_back(sphereGPU);
-}
-
 void CreateSphere(point3 pos, float radius, Material mat)
 {
+    objects.push_back(std::make_unique<Sphere>(pos, radius, mat));
+}
 
-    Sphere_GPU sphereGPU = Sphere_GPU{
-        .x = pos.x,
-        .y = pos.y,
-        .z = pos.z,
-        .x2 = pos.x,
-        .y2 = pos.y,
-        .z2 = pos.z,
-        .radius = radius,
-        .r = mat.color.x,
-        .g = mat.color.y,
-        .b = mat.color.z,
-        .fuzz = mat.fuzz,
-        .refraction = mat.refraction,
-        .type = mat.type};
-    if (!mat.texture)
-    {
-        sphereGPU.textureID = -1;
-    }
-    else
-    {
-        sphereGPU.textureID = textureIDCounter;
-        textures.push_back(mat.texture);
-        textureIDCounter++;
-    }
+void CreateQuad(point3 pos, Vec3<float> u, Vec3<float> v, Material mat)
+{
+    objects.push_back(std::make_unique<Quad>(pos, u, v, mat));
+}
 
-    spheres.push_back(sphereGPU);
+void CreateBox(point3 a, point3 b, Material mat)
+{
+    // Construct the two opposite vertices with the minimum and maximum coordinates.
+    point3 min = point3(std::fmin(a.x,b.x), std::fmin(a.y,b.y), std::fmin(a.z,b.z));
+    point3 max = point3(std::fmax(a.x,b.x), std::fmax(a.y,b.y), std::fmax(a.z,b.z));
+
+    Vec3<float> dx = Vec3(max.x - min.x, 0.0f, 0.0f);
+    Vec3<float> dy = Vec3(0.0f, max.y - min.y, 0.0f);
+    Vec3<float> dz = Vec3(0.0f, 0.0f, max.z - min.z);
+
+    objects.push_back(std::make_unique<Quad>(point3(min.x, min.y, max.z),  dx,  dy, mat)); // front
+    objects.push_back(std::make_unique<Quad>(point3(max.x, min.y, max.z), -dz,  dy, mat)); // right
+    objects.push_back(std::make_unique<Quad>(point3(max.x, min.y, min.z), -dx,  dy, mat)); // back
+    objects.push_back(std::make_unique<Quad>(point3(min.x, min.y, min.z),  dz,  dy, mat)); // left
+    objects.push_back(std::make_unique<Quad>(point3(min.x, max.y, max.z),  dx, -dz, mat)); // top
+    objects.push_back(std::make_unique<Quad>(point3(min.x, min.y, min.z),  dx,  dz, mat)); // bottom
 }
 
 SDL_GPUTexture *CreateTextureArray(
@@ -300,38 +267,103 @@ SDL_GPUTexture *CreateTextureArray(
     return textureArray;
 }
 
-std::vector<Sphere_GPU> BuildInitialScene2()
+std::vector<std::unique_ptr<Object>> BuildInitialScene2()
 {
-    Texture *tex = new Texture(device, "brick/textures/red_brick_diff_4k.jpg");
-    CreateSphere(point3(0.0f, -700.0f, 0.0f), 700.0f, Material(Color(.5f, .5f, .5f), 0.0f, 0.5f, LAMBERTIAN, nullptr));
+    // Materials
+    Material left_red(Color(1.0f, 0.2f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    Material back_green(Color(0.2f, 1.0f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    Material right_blue(Color(0.2f, 0.2f, 1.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    Material upper_orange(Color(1.0f, 0.5f, 0.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    Material lower_teal(Color(0.2f, 0.8f, 0.8f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
 
-    CreateSphere(point3(0.0f, 1.2f, 0.0f), 1.0f, Material(Color(.5f, .1f, .0f), 0.0f, 1.5f, DIAELECTRIC, nullptr));
+    // CreateSphere(point3(0.0f, -1000.0f, 0.0f), 1000.0f, Material(Color(.5f, .5f, .5f), 0.0f, 0.5f, LAMBERTIAN, nullptr));
 
-    CreateSphere(point3(-4.0f, 0.5f, 0.0f), 1.0f, Material(Color(.4f, .2f, .1f), 0.0f, 1.5f, LAMBERTIAN, nullptr));
+    CreateQuad(point3(-3.0, -2.0f, 5.0f), Vec3(0.0f, 0.0f, -4.0f), Vec3(0.0f, 4.0f, 0.0f), left_red);
 
-    CreateSphere(point3(1.0f, 0.5f, 0.0f), 1.0f, Material(Color(.7f, .5f, .4f), 0.0f, 1.5f, METAL, nullptr));
+    CreateQuad(point3(-2.0f, -2.0f, 0.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 4.0f, 0.0f), back_green);
 
-    return spheres;
+    CreateQuad(point3(3.0f, -2.0f, 1.0f), Vec3(0.0f, 0.0f, 4.0f), Vec3(0.0f, 4.0f, 0.0f), right_blue);
+
+    CreateQuad(point3(-2.0f, -3.0f, 5.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -4.0f), upper_orange);
+
+    CreateQuad(point3(-2.0f, 3.0f, 5.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -4.0f), lower_teal);
+
+    return std::move(objects);
 }
+
+std::vector<std::unique_ptr<Object>> CornellBox()
+{
+    // Materials
+    Material red(Color(.65f, .05f, .05f),1.0f, 0.0f, DIAELECTRIC, new Texture(device,0.65f * 255.0f, 0.05f * 255.0f, 0.05f * 255.0f));
+
+    Material white(Color(.73f, .73f, .73f),0.2f, 0.0f, LAMBERTIAN);
+
+    Material green(Color(.12f, .45f, .15f),0.2f, 0.0f, LAMBERTIAN);
+
+    Material light(Color(15.0f, 15.0f, 15.0f),1.0f, 0.0f, DIFFUSE_LIGHT, new Texture(device,255.0f,255.0f,255.0f));
+
+
+    Material red_light(Color(.65f, .05f, .05f),0.1f, 0.0f, DIFFUSE_LIGHT,new Texture(device,0.65f * 255.0f, 0.05f * 255.0f, 0.05f * 255.0f));
+
+    //Wall
+    CreateQuad(point3(555.0, 0.0f, 5.0f), Vec3(0.0f, 555.0f, -4.0f), Vec3(0.0f, 0.0f, 555.0f), green);
+
+    CreateQuad(point3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 555.0f, 0.0f), Vec3(0.0f, 0.0f, 555.0f), red);
+
+    CreateQuad(point3(343.0f, 554.0f, 332.0f), Vec3(-130.0f, 0.0f, 4.0f), Vec3(0.0f, 0.0f, -105.0f), light);
+
+    CreateQuad(point3(0.0f, 0.0f, 0.0f), Vec3(555.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 55.0f), white);
+
+    CreateQuad(point3(555.0f, 555.0f, 555.0f), Vec3(-555.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -555.0f), white);
+
+    CreateQuad(point3(0.0f, 0.0f, 555.0f), Vec3(555.0f, 0.0f, 0.0f), Vec3(0.0f, 555.0f, 0.0f), white);
+
+
+    CreateSphere(point3(350, 150, 0),50.0f,red_light);
+
+
+    //Boxes
+
+    CreateBox(point3(130, 0, 65), point3(295, 165, 230), white);
+    CreateBox(point3(265, 0, 295), point3(430, 330, 460), light);
+    
+    return std::move(objects);
+}
+
 
 // Builds the Ray Tracing In One Weekend "final scene" - same random
 // layout as before, just returned as a vector instead of being uploaded
 // directly. This is the *rest* position each small sphere bobs around
 // once StepPhysics starts moving them.
-std::vector<Sphere_GPU> BuildInitialScene()
+std::vector<std::unique_ptr<Object>> BuildInitialScene()
 {
     Texture *tex = new Texture(device, "brick/textures/red_brick_diff_4k.jpg");
+
+    Material left_red(Color(1.0f, 0.2f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    // Material back_green(Color(0.2f, 1.0f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    // Material right_blue(Color(0.2f, 0.2f, 1.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    // Material upper_orange(Color(1.0f, 0.5f, 0.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    Material lower_teal(Color(0.2f, 0.8f, 0.8f), 0.0f, 0.0f, LAMBERTIAN, tex);
+
+    Material light(Color(1.0f, 1.0f, 1.0f), 0.0f, 0.0f, DIFFUSE_LIGHT, new Texture(device,255.0f,255.0f,255.0f));
+
+    // CreateSphere(point3(0.0f, -1000.0f, 0.0f), 1000.0f, Material(Color(.5f, .5f, .5f), 0.0f, 0.5f, LAMBERTIAN, nullptr));
+
+    CreateQuad(point3(-3.0, -2.0f, 5.0f), Vec3(0.0f, 0.0f, -4.0f), Vec3(0.0f, 4.0f, 0.0f), left_red);
+
+    CreateQuad(point3(-2.0f, 3.0f, 5.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -4.0f), light);
+
     CreateSphere(point3(0.0f, -1000.0f, 0.0f), 1000.0f, Material(Color(.5f, .5f, .5f), 0.0f, 0.5f, LAMBERTIAN, nullptr));
 
     CreateSphere(point3(0.0f, 1.0f, 0.0f), 1.0f, Material(Color(.5f, .1f, .0f), 0.0f, 1.5f, DIAELECTRIC, nullptr));
 
-    CreateSphere(point3(-4.0f, 1.0f, 0.0f), 1.0f, Material(Color(.4f, .2f, .1f), 0.0f, 0.0f, LAMBERTIAN, tex));
+    CreateSphere(point3(-4.0f, 1.0f, 0.0f), 1.0f, light);
 
     CreateSphere(point3(4.0f, 1.0f, 0.0f), 1.0f, Material(Color(.7f, .6f, .5f), 0.0f, 0.0f, METAL, nullptr));
 
     SDL_srand(0);
-    for (int a = -11; a < 11; a++)
-        for (int b = -11; b < 11; b++)
+    for (int a = -5; a < 5; a++)
+        for (int b = -5; b < 5; b++)
         {
             const int i = 4 + (a + 11) * 22 + b + 11;
             const float material = SDL_randf();
@@ -358,77 +390,116 @@ std::vector<Sphere_GPU> BuildInitialScene()
             }
             CreateSphere(position, 0.2f, mat);
         }
-    return spheres;
+    return std::move(objects);
 }
 
-// Placeholder motion so the per-frame BVH rebuild has something to
-// rebuild around - replace this with your actual physics step. It bobs
-// each small sphere vertically and records its previous y into y2, so
-// SphereBounds() in bvh.h produces a correct swept AABB for the frame.
-// `spheres` is mutated in place and must persist across frames (its
-// current y becomes next frame's "previous position").
-void StepPhysics(std::vector<Sphere_GPU> &spheres, const std::vector<Sphere_GPU> &restPose, float time)
+std::vector<std::unique_ptr<Object>> CloneObjects(const std::vector<std::unique_ptr<Object>> &src)
 {
-    (void)spheres;
+    std::vector<std::unique_ptr<Object>> out;
+    out.reserve(src.size());
+    for (const auto &obj : src)
+        out.push_back(obj->Clone());
+    return out;
+}
+
+
+void StepPhysics(std::vector<std::unique_ptr<Object>> &objects,
+                 const std::vector<std::unique_ptr<Object>> &restPose,
+                 float time)
+{
+    (void)objects;
     (void)restPose;
     (void)time;
-    // for (size_t i = 4; i < spheres.size(); i++)
-    // {
-    //     const float prevY = spheres[i].y;
-    //     spheres[i].y = restPose[i].y + 0.15f * SDL_sinf(time * 2.0f + static_cast<float>(i) * 0.37f);
-    //     spheres[i].y2 = prevY;
-    // }
 }
 // Allocates GPU-resident storage buffers plus matching upload transfer
 // buffers, sized for the worst case so no reallocation is needed as the
 // BVH shape changes frame to frame.
-SceneBuffers CreateSceneBuffers(SDL_GPUDevice *device, Uint32 maxSpheres, Uint32 maxNodes)
+SceneBuffers CreateSceneBuffers(SDL_GPUDevice *device, Uint32 maxObjects, Uint32 maxNodes)
 {
     SceneBuffers sb{};
 
-    SDL_GPUBufferCreateInfo sphereInfo{
+    SDL_GPUBufferCreateInfo objectInfo{
         .usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ,
-        .size = static_cast<Uint32>(maxSpheres * sizeof(Sphere_GPU))};
+        .size = static_cast<Uint32>(maxObjects * sizeof(Object_GPU))};
     SDL_GPUBufferCreateInfo bvhInfo{
         .usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ,
         .size = static_cast<Uint32>(maxNodes * sizeof(BVHNode_GPU))};
-    sb.sphereBuffer = SDL_CreateGPUBuffer(device, &sphereInfo);
+    sb.objectBuffer = SDL_CreateGPUBuffer(device, &objectInfo);
     sb.bvhBuffer = SDL_CreateGPUBuffer(device, &bvhInfo);
 
-    SDL_GPUTransferBufferCreateInfo sphereTransferInfo{
+    SDL_GPUTransferBufferCreateInfo objectTransferInfo{
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = static_cast<Uint32>(maxSpheres * sizeof(Sphere_GPU))};
+        .size = static_cast<Uint32>(maxObjects * sizeof(Object_GPU))};
     SDL_GPUTransferBufferCreateInfo bvhTransferInfo{
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
         .size = static_cast<Uint32>(maxNodes * sizeof(BVHNode_GPU))};
-    sb.sphereTransfer = SDL_CreateGPUTransferBuffer(device, &sphereTransferInfo);
+    sb.objectTransfer = SDL_CreateGPUTransferBuffer(device, &objectTransferInfo);
     sb.bvhTransfer = SDL_CreateGPUTransferBuffer(device, &bvhTransferInfo);
 
-    if (!sb.sphereBuffer || !sb.bvhBuffer || !sb.sphereTransfer || !sb.bvhTransfer)
+    if (!sb.objectTransfer || !sb.bvhBuffer || !sb.objectTransfer || !sb.bvhTransfer)
     {
         SDL_Log("Failed to create scene buffers: %s", SDL_GetError());
     }
     return sb;
 }
 
+std::vector<Object_GPU> ObjectsToGPUObjects(const std::vector<Object *> &objects)
+{
+    std::vector<Object_GPU> list;
+    list.reserve(objects.size());
+
+    for (Object *obj : objects)
+    {
+        Object_GPU obj_gpu = obj->CreateObjectGPU();
+
+        if (!obj->mat.texture)
+            obj_gpu.textureID = static_cast<Uint32>(-1);
+        else
+        {
+            obj_gpu.textureID = textureIDCounter++;
+            textures.push_back(obj->mat.texture);
+        }
+
+        list.push_back(obj_gpu);
+    }
+
+    return list;
+}
+
+std::vector<BVHNode_GPU> NodesToGPUNodes(const std::vector<BVH_node *> &nodes)
+{
+    std::vector<BVHNode_GPU> list;
+    list.reserve(nodes.size());
+
+    for (BVH_node *obj : nodes)
+    {
+        BVHNode_GPU obj_gpu = obj->CreateBVHNodeGPU();
+        list.push_back(obj_gpu);
+    }
+
+    return list;
+}
+
+
+
 // Re-maps the persistent transfer buffers and re-uploads them into the
 // persistent GPU buffers. `cycle = true` lets SDL_gpu double-buffer this
 // resource internally instead of stalling on the previous frame's usage.
 bool UploadScene(
     SceneBuffers &sb,
-    const std::vector<Sphere_GPU> &spheres,
+    const std::vector<Object_GPU> &objects,
     const std::vector<BVHNode_GPU> &nodes)
 {
-    void *sphereData = SDL_MapGPUTransferBuffer(device, sb.sphereTransfer, true);
+    void *objectData = SDL_MapGPUTransferBuffer(device, sb.objectTransfer, true);
     void *bvhData = SDL_MapGPUTransferBuffer(device, sb.bvhTransfer, true);
-    if (!sphereData || !bvhData)
+    if (!objectData || !bvhData)
     {
         SDL_Log("Failed to map scene transfer buffers: %s", SDL_GetError());
         return false;
     }
-    SDL_memcpy(sphereData, spheres.data(), spheres.size() * sizeof(Sphere_GPU));
+    SDL_memcpy(objectData, objects.data(), objects.size() * sizeof(Object_GPU));
     SDL_memcpy(bvhData, nodes.data(), nodes.size() * sizeof(BVHNode_GPU));
-    SDL_UnmapGPUTransferBuffer(device, sb.sphereTransfer);
+    SDL_UnmapGPUTransferBuffer(device, sb.objectTransfer);
     SDL_UnmapGPUTransferBuffer(device, sb.bvhTransfer);
 
     SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(device);
@@ -444,11 +515,11 @@ bool UploadScene(
         return false;
     }
 
-    SDL_GPUTransferBufferLocation sphereSrc{.transfer_buffer = sb.sphereTransfer};
-    SDL_GPUBufferRegion sphereDst{
-        .buffer = sb.sphereBuffer,
-        .size = static_cast<Uint32>(spheres.size() * sizeof(Sphere_GPU))};
-    SDL_UploadToGPUBuffer(copy_pass, &sphereSrc, &sphereDst, true);
+    SDL_GPUTransferBufferLocation objectSrc{.transfer_buffer = sb.objectTransfer};
+    SDL_GPUBufferRegion objectDst{
+        .buffer = sb.objectBuffer,
+        .size = static_cast<Uint32>(objects.size() * sizeof(Object_GPU))};
+    SDL_UploadToGPUBuffer(copy_pass, &objectSrc, &objectDst, true);
 
     SDL_GPUTransferBufferLocation bvhSrc{.transfer_buffer = sb.bvhTransfer};
     SDL_GPUBufferRegion bvhDst{
@@ -464,33 +535,36 @@ bool UploadScene(
 int main()
 {
     Config config = {
-        .source_x = 13.0f,
-        .source_y = 2.0f,
-        .source_z = 3.0f,
-        .fov = 15.0f,
-        .target_x = 0.0f,
-        .target_y = 0.0f,
-        .target_z = -1.0f,
+        .source_x = 278.0f,
+        .source_y = 278.0f,
+        .source_z = -800.0f,
+        .fov = 40.0f,
+        .target_x = 278.0f,
+        .target_y = 278.0f,
+        .target_z = 0.0f,
         .focus_dist = 20.0f,
         .defocus_angle = 0.6f,
         .up_x = 0.0f,
         .up_y = 1.0f,
         .up_z = 0.0f,
         .oof = 0.6f,
-        .sky_r = 0.5f,
-        .sky_g = 0.7f,
-        .sky_b = 1.0f,
+        // .sky_r = 0.5f,
+        // .sky_g = 0.7f,
+        // .sky_b = 1.0f,
+        .sky_r = 0.0f,
+        .sky_g = 0.0f,
+        .sky_b = 0.0f,
         .width = 1980,
-        .horizon_r = 1.0f,
-        .horizon_g = 1.0f,
-        .horizon_b = 1.0f,
+        .horizon_r = 0.0f,
+        .horizon_g = 0.0f,
+        .horizon_b = 0.0f,
         .height = 1080,
-        .samples = 1, // samples per frame - lower this if the frame rate is too low
+        .samples = 2, // samples per frame - lower this if the frame rate is too low
         .batches = 1, // fixed: each frame is its own accumulation (see note below)
         .batch = 0,   // fixed at 0 - Batch>0 in the shader means "blend with last frame",
                       // which would ghost since both the scene and camera move every frame
         .depth = 5,
-        .num_spheres = SCENE_SPHERES};
+        .num_spheres = SCENE_OBJECTS};
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -562,11 +636,11 @@ int main()
     }
 
     // Rest pose (immutable) and the live, physics-mutated copy.
-    const std::vector<Sphere_GPU> restPose = BuildInitialScene();
-    std::vector<Sphere_GPU> liveSpheres = restPose;
+    const std::vector<std::unique_ptr<Object>> restPose = CornellBox();
+    std::vector<std::unique_ptr<Object>> liveObjects = CloneObjects(restPose);
 
-    std::vector<BVHNode_GPU> nodes;
-    std::vector<Sphere_GPU> orderedSpheres;
+    std::vector<BVH_node *> nodes;
+    std::vector<Object *> orderedObjects;
 
     // Build the GPU texture array from all textures used by the scene.
     std::vector<SDL_GPUTexture *> textureHandles;
@@ -602,8 +676,8 @@ int main()
         return 1;
     }
 
-    SceneBuffers sceneBuffers = CreateSceneBuffers(device, MAX_SPHERES, MAX_NODES);
-    if (!sceneBuffers.sphereBuffer || !sceneBuffers.bvhBuffer)
+    SceneBuffers sceneBuffers = CreateSceneBuffers(device, MAX_OBJECTS, MAX_NODES);
+    if (!sceneBuffers.objectBuffer || !sceneBuffers.bvhBuffer)
     {
         SDL_Log("Failed to create scene buffers");
         return 1;
@@ -718,34 +792,19 @@ int main()
         config.batch = accumulationFrame;
 
         // 2. Step motion/physics.
-        StepPhysics(liveSpheres, restPose, static_cast<float>(elapsedTime));
+        // StepPhysics(liveObjects, restPose, static_cast<float>(elapsedTime));
 
         // 3. Rebuild the BVH around the new positions.
-        BuildBVH(liveSpheres, nodes, orderedSpheres);
+        BuildBVH(liveObjects, nodes, orderedObjects);
         SDL_Log(
-            "BVH: %zu nodes, %zu ordered spheres",
+            "BVH: %zu nodes, %zu ordered objects",
             nodes.size(),
-            orderedSpheres.size());
+            orderedObjects.size());
 
-        for (size_t i = 0; i < nodes.size(); ++i)
-        {
-            const auto &n = nodes[i];
-
-            SDL_Log(
-                "Node %zu: min=(%.2f, %.2f, %.2f) "
-                "max=(%.2f, %.2f, %.2f)",
-                i,
-                n.min_x,
-                n.min_y,
-                n.min_z,
-                n.max_x,
-                n.max_y,
-                n.max_z);
-        }
-        config.num_spheres = static_cast<Uint32>(orderedSpheres.size());
+        config.num_spheres = static_cast<Uint32>(orderedObjects.size());
 
         // 4. Upload the reordered spheres + flattened nodes.
-        if (!UploadScene(sceneBuffers, orderedSpheres, nodes))
+        if (!UploadScene(sceneBuffers, ObjectsToGPUObjects(orderedObjects), NodesToGPUNodes(nodes)))
         {
             SDL_Log("Failed to upload scene");
             break;
@@ -768,7 +827,7 @@ int main()
             return 1;
         }
         SDL_BindGPUComputePipeline(compute_pass, pipeline);
-        SDL_GPUBuffer *storageBuffers[2] = {sceneBuffers.sphereBuffer, sceneBuffers.bvhBuffer};
+        SDL_GPUBuffer *storageBuffers[2] = {sceneBuffers.objectBuffer, sceneBuffers.bvhBuffer};
         SDL_BindGPUComputeStorageBuffers(compute_pass, 0, storageBuffers, 2);
 
         SDL_GPUTextureSamplerBinding textureBinding{
@@ -824,7 +883,7 @@ int main()
                      currentFps,
                      fpsCapEnabled ? "capped" : "uncapped",
                      static_cast<Uint32>(nodes.size()),
-                     static_cast<Uint32>(orderedSpheres.size()),
+                     static_cast<Uint32>(orderedObjects.size()),
                      mouseCaptured ? "captured" : "free");
         SDL_SetWindowTitle(window, title);
 
@@ -848,10 +907,10 @@ int main()
     SDL_ReleaseGPUTexture(device, texture1);
     SDL_ReleaseGPUTexture(device, globalTextureArray);
 
-    SDL_ReleaseGPUBuffer(device, sceneBuffers.sphereBuffer);
+    SDL_ReleaseGPUBuffer(device, sceneBuffers.objectBuffer);
     SDL_ReleaseGPUBuffer(device, sceneBuffers.bvhBuffer);
 
-    SDL_ReleaseGPUTransferBuffer(device, sceneBuffers.sphereTransfer);
+    SDL_ReleaseGPUTransferBuffer(device, sceneBuffers.objectTransfer);
     SDL_ReleaseGPUTransferBuffer(device, sceneBuffers.bvhTransfer);
 
     SDL_ReleaseGPUComputePipeline(device, pipeline);
