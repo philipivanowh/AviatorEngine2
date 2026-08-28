@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/Users/lansmachine/Documents/Github/AviatorEngine2/build",
-  "command": "/usr/bin/clang++  -I/Users/lansmachine/Documents/Github/AviatorEngine2/external/SDL3.framework/Headers -F/Users/lansmachine/Documents/Github/AviatorEngine2/external -g -std=gnu++20 -o CMakeFiles/app.dir/main.cpp.o -c /Users/lansmachine/Documents/Github/AviatorEngine2/main.cpp",
-  "file": "/Users/lansmachine/Documents/Github/AviatorEngine2/main.cpp",
-  "output": "CMakeFiles/app.dir/main.cpp.o"
-}
-]

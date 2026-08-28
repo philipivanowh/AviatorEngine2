@@ -1,7 +1,9 @@
 #include <SDL3/SDL.h>
+#define SDL_MAIN_HANDLED
 #include <SDL3/SDL_main.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -11,15 +13,22 @@
 #include "common.h"
 #include "camera.h"
 #include "material.h"
+#include "scene.h"
 #include "texture.h"
 
 #define THREADS 256
-#define SCENE_OBJECTS (4 + 22 * 22)
-
-// #define SCENE_SPHERES (4)
-#define MAX_OBJECTS SCENE_OBJECTS
-#define MAX_NODES (MAX_OBJECTS * 2) // safe upper bound for a binary tree over MAX_SPHERES leaves
 #define TARGET_FPS 60.0
+
+enum RenderType
+{
+    Path_Tracing = 0,
+    Ray_Tracing = 1,
+};
+
+// Upper bound on BVH nodes for a given object count. BuildRecursive splits
+// until a node holds at most BVH_LEAF_SIZE objects, so leaves never outnumber
+// the objects and interior nodes never outnumber the leaves.
+static constexpr Uint32 MaxNodesFor(Uint32 objectCount) { return objectCount * 2 + 1; }
 
 struct Config
 {
@@ -32,6 +41,7 @@ struct Config
     float target_z;
     float focus_dist;
     float defocus_angle;
+    float padding[3];
     float up_x;
     float up_y;
     float up_z;
@@ -49,28 +59,27 @@ struct Config
     Uint32 batch;
     Uint32 depth;
     Uint32 num_spheres;
-    Uint32 padding[3];
+    Uint32 renderType;
+    Uint32 num_lights;
+    float padding1[2];
 };
 
 struct SceneBuffers
 {
     SDL_GPUBuffer *objectBuffer;
     SDL_GPUBuffer *bvhBuffer;
-    SDL_GPUBuffer *textureBuffer;
+    SDL_GPUBuffer *lightIDBuffer;
     SDL_GPUTransferBuffer *objectTransfer;
     SDL_GPUTransferBuffer *bvhTransfer;
-    SDL_GPUTransferBuffer *textureTransfer;
+    SDL_GPUTransferBuffer *lightIDTransfer;
+    Uint32 maxObjects;
+    Uint32 maxNodes;
+    Uint32 maxLights;
 };
 
 SDL_GPUDevice *device;
 
-std::vector<std::unique_ptr<Object>> objects;
-std::vector<Object_GPU> objects_GPU;
-std::vector<Texture *> textures;
-Uint32 textureIDCounter;
-
-
-SDL_GPUComputePipeline *CreateComputePipeline(SDL_GPUDevice *device)
+SDL_GPUComputePipeline *CreatePathTraceComputePipeline(SDL_GPUDevice *device)
 {
     SDL_GPUShaderFormat formats = SDL_GetGPUShaderFormats(device);
     const char *path;
@@ -78,21 +87,26 @@ SDL_GPUComputePipeline *CreateComputePipeline(SDL_GPUDevice *device)
     SDL_GPUShaderFormat format;
     if (formats & SDL_GPU_SHADERFORMAT_SPIRV)
     {
-        path = "shader.comp.spv";
+        path = "path_trace.comp.spv";
         entrypoint = "main";
         format = SDL_GPU_SHADERFORMAT_SPIRV;
+        SDL_Log("This computer supports SPIRV");
     }
     else if (formats & SDL_GPU_SHADERFORMAT_DXIL)
     {
-        path = "shader.comp.dxil";
+        path = "path_trace.comp.dxil";
         entrypoint = "main";
         format = SDL_GPU_SHADERFORMAT_DXIL;
+
+        SDL_Log("This computer supports DXIL");
     }
     else if (formats & SDL_GPU_SHADERFORMAT_MSL)
     {
-        path = "shader.comp.msl";
+        path = "path_trace.comp.msl";
         entrypoint = "main0";
         format = SDL_GPU_SHADERFORMAT_MSL;
+
+        SDL_Log("This computer supports MSL");
     }
     else
     {
@@ -101,18 +115,29 @@ SDL_GPUComputePipeline *CreateComputePipeline(SDL_GPUDevice *device)
     }
     size_t size;
     void *data = SDL_LoadFile(path, &size);
+    const char *basePath = nullptr;
+    if (!data)
+    {
+        basePath = SDL_GetBasePath();
+        if (basePath)
+        {
+            std::string baseShaderPath = std::string(basePath) + path;
+            data = SDL_LoadFile(baseShaderPath.c_str(), &size);
+        }
+    }
     if (!data)
     {
         SDL_Log("Failed to load shader: %s", SDL_GetError());
         return nullptr;
     }
+    SDL_Log("Loading compute shader: %s (%zu bytes)", path, size);
     SDL_GPUComputePipelineCreateInfo cpci = {0};
     cpci.code = static_cast<Uint8 *>(data);
     cpci.code_size = size;
     cpci.entrypoint = entrypoint;
     cpci.format = format;
     cpci.num_samplers = 1;
-    cpci.num_readonly_storage_buffers = 2; // spheres (t0) + bvh nodes (t1)
+    cpci.num_readonly_storage_buffers = 2; // objects (t1) + BVH nodes (t2)
     cpci.num_readwrite_storage_textures = 1;
     cpci.num_uniform_buffers = 1;
     cpci.threadcount_x = THREADS;
@@ -128,280 +153,341 @@ SDL_GPUComputePipeline *CreateComputePipeline(SDL_GPUDevice *device)
     return pipeline;
 }
 
-void CreateSphere(point3 pos, float radius, Material mat)
+SDL_GPUComputePipeline *CreateRayTraceComputePipeline(SDL_GPUDevice *device)
 {
-    objects.push_back(std::make_unique<Sphere>(pos, radius, mat));
-}
-
-void CreateQuad(point3 pos, Vec3<float> u, Vec3<float> v, Material mat)
-{
-    objects.push_back(std::make_unique<Quad>(pos, u, v, mat));
-}
-
-void CreateBox(point3 a, point3 b, Material mat)
-{
-    // Construct the two opposite vertices with the minimum and maximum coordinates.
-    point3 min = point3(std::fmin(a.x,b.x), std::fmin(a.y,b.y), std::fmin(a.z,b.z));
-    point3 max = point3(std::fmax(a.x,b.x), std::fmax(a.y,b.y), std::fmax(a.z,b.z));
-
-    Vec3<float> dx = Vec3(max.x - min.x, 0.0f, 0.0f);
-    Vec3<float> dy = Vec3(0.0f, max.y - min.y, 0.0f);
-    Vec3<float> dz = Vec3(0.0f, 0.0f, max.z - min.z);
-
-    objects.push_back(std::make_unique<Quad>(point3(min.x, min.y, max.z),  dx,  dy, mat)); // front
-    objects.push_back(std::make_unique<Quad>(point3(max.x, min.y, max.z), -dz,  dy, mat)); // right
-    objects.push_back(std::make_unique<Quad>(point3(max.x, min.y, min.z), -dx,  dy, mat)); // back
-    objects.push_back(std::make_unique<Quad>(point3(min.x, min.y, min.z),  dz,  dy, mat)); // left
-    objects.push_back(std::make_unique<Quad>(point3(min.x, max.y, max.z),  dx, -dz, mat)); // top
-    objects.push_back(std::make_unique<Quad>(point3(min.x, min.y, min.z),  dx,  dz, mat)); // bottom
-}
-
-SDL_GPUTexture *CreateTextureArray(
-    SDL_GPUDevice *device,
-    const std::vector<SDL_GPUTexture *> &textures,
-    SDL_GPUTexture *fallbackTexture,
-    Uint32 width,
-    Uint32 height)
-{
-    const Uint32 layerCount =
-        textures.empty()
-            ? 1
-            : static_cast<Uint32>(textures.size());
-
-    SDL_GPUTextureCreateInfo info{};
-    info.type = SDL_GPU_TEXTURETYPE_2D_ARRAY;
-    info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    info.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-    info.width = width;
-    info.height = height;
-    info.layer_count_or_depth = layerCount;
-    info.num_levels = 1;
-
-    SDL_GPUTexture *textureArray =
-        SDL_CreateGPUTexture(device, &info);
-
-    if (!textureArray)
+    SDL_GPUShaderFormat formats = SDL_GetGPUShaderFormats(device);
+    const char *path;
+    const char *entrypoint;
+    SDL_GPUShaderFormat format;
+    if (formats & SDL_GPU_SHADERFORMAT_SPIRV)
     {
-        SDL_Log(
-            "Failed to create texture array: %s",
-            SDL_GetError());
-        return nullptr;
+        path = "ray_trace.comp.spv";
+        entrypoint = "main";
+        format = SDL_GPU_SHADERFORMAT_SPIRV;
+        SDL_Log("This computer supports SPIRV");
     }
-
-    SDL_GPUCommandBuffer *commandBuffer =
-        SDL_AcquireGPUCommandBuffer(device);
-
-    if (!commandBuffer)
+    else if (formats & SDL_GPU_SHADERFORMAT_DXIL)
     {
-        SDL_Log(
-            "Failed to acquire command buffer: %s",
-            SDL_GetError());
+        path = "ray_trace.comp.dxil";
+        entrypoint = "main";
+        format = SDL_GPU_SHADERFORMAT_DXIL;
 
-        SDL_ReleaseGPUTexture(device, textureArray);
-        return nullptr;
+        SDL_Log("This computer supports DXIL");
     }
-
-    SDL_GPUCopyPass *copyPass =
-        SDL_BeginGPUCopyPass(commandBuffer);
-
-    if (!copyPass)
+    else if (formats & SDL_GPU_SHADERFORMAT_MSL)
     {
-        SDL_Log(
-            "Failed to begin texture array copy pass: %s",
-            SDL_GetError());
+        path = "ray_trace.comp.msl";
+        entrypoint = "main0";
+        format = SDL_GPU_SHADERFORMAT_MSL;
 
-        SDL_SubmitGPUCommandBuffer(commandBuffer);
-        SDL_ReleaseGPUTexture(device, textureArray);
-        return nullptr;
-    }
-
-    if (textures.empty())
-    {
-        SDL_GPUTextureLocation source{
-            .texture = fallbackTexture,
-            .mip_level = 0,
-        };
-
-        SDL_GPUTextureLocation destination{
-            .texture = textureArray,
-            .mip_level = 0,
-        };
-
-        SDL_CopyGPUTextureToTexture(
-            copyPass,
-            &source,
-            &destination,
-            width,
-            height,
-            1,
-            false);
+        SDL_Log("This computer supports MSL");
     }
     else
     {
-        for (Uint32 i = 0; i < layerCount; ++i)
+        SDL_Log("No supported shader format");
+        return nullptr;
+    }
+    size_t size;
+    void *data = SDL_LoadFile(path, &size);
+    const char *basePath = nullptr;
+    if (!data)
+    {
+        basePath = SDL_GetBasePath();
+        if (basePath)
         {
-            SDL_GPUTextureLocation source{
-                .texture = textures[i],
-                .mip_level = 0,
-                .layer = i};
-
-            SDL_GPUTextureLocation destination{
-                .texture = textureArray,
-                .mip_level = 0,
-                .layer = i};
-
-            SDL_CopyGPUTextureToTexture(
-                copyPass,
-                &source,
-                &destination,
-                width,
-                height,
-                1,
-                false);
+            std::string baseShaderPath = std::string(basePath) + path;
+            data = SDL_LoadFile(baseShaderPath.c_str(), &size);
         }
     }
-
-    SDL_EndGPUCopyPass(copyPass);
-    SDL_SubmitGPUCommandBuffer(commandBuffer);
-
-    return textureArray;
+    if (!data)
+    {
+        SDL_Log("Failed to load shader: %s", SDL_GetError());
+        return nullptr;
+    }
+    SDL_Log("Loading compute shader: %s (%zu bytes)", path, size);
+    SDL_GPUComputePipelineCreateInfo cpci = {0};
+    cpci.code = static_cast<Uint8 *>(data);
+    cpci.code_size = size;
+    cpci.entrypoint = entrypoint;
+    cpci.format = format;
+    cpci.num_samplers = 1;
+    cpci.num_readonly_storage_buffers = 3; // objects (t1) + BVH nodes (t2) + light IDs
+    cpci.num_readwrite_storage_textures = 1;
+    cpci.num_uniform_buffers = 1;
+    cpci.threadcount_x = THREADS;
+    cpci.threadcount_y = 1;
+    cpci.threadcount_z = 1;
+    SDL_GPUComputePipeline *pipeline = SDL_CreateGPUComputePipeline(device, &cpci);
+    SDL_free(data);
+    if (!pipeline)
+    {
+        SDL_Log("Failed to create compute pipeline: %s", SDL_GetError());
+        return nullptr;
+    }
+    return pipeline;
 }
 
-std::vector<std::unique_ptr<Object>> BuildInitialScene2()
+// The classic Cornell box: two coloured side walls, three white ones, a ceiling
+// light, and two boxes. Lit entirely by the ceiling light against a black sky.
+void BuildCornellBox(Scene &scene)
 {
-    // Materials
-    Material left_red(Color(1.0f, 0.2f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    Material back_green(Color(0.2f, 1.0f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    Material right_blue(Color(0.2f, 0.2f, 1.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    Material upper_orange(Color(1.0f, 0.5f, 0.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    Material lower_teal(Color(0.2f, 0.8f, 0.8f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
+    scene.camera.position = point3(278.0f, 278.0f, -800.0f);
+    scene.camera.target = point3(278.0f, 278.0f, 0.0f);
+    scene.camera.fov = 40.0f;
+    scene.camera.focus_dist = 800.0f;
+    scene.camera.sky = Color(0.0f, 0.0f, 0.0f);
+    scene.camera.horizon = Color(0.0f, 0.0f, 0.0f);
+    scene.maxDepth = 2;
 
-    // CreateSphere(point3(0.0f, -1000.0f, 0.0f), 1000.0f, Material(Color(.5f, .5f, .5f), 0.0f, 0.5f, LAMBERTIAN, nullptr));
+    const Material white = Material::Lambertian(Color(0.73f, 0.73f, 0.73f));
+    const Material red = Material::Lambertian(Color(0.65f, 0.05f, 0.05f));
+    const Material green = Material::Lambertian(Color(0.12f, 0.45f, 0.15f));
+    const Material light = Material::Emissive(Color(1.0f, 1.0f, 1.0f), 65.0f);
+    const Material redLight = Material::Emissive(Color(0.65f, 0.65f, 0.65f), 10.0f);
+    const Material volume = Material::Volume(Color(0.22f, 0.22f, 0.1f), 0.3f);
 
-    CreateQuad(point3(-3.0, -2.0f, 5.0f), Vec3(0.0f, 0.0f, -4.0f), Vec3(0.0f, 4.0f, 0.0f), left_red);
+    // Walls
+    scene.AddQuad(point3(555.0f, 0.0f, 0.0f), Vec3(0.0f, 555.0f, 0.0f), Vec3(0.0f, 0.0f, 555.0f), green);       // left
+    scene.AddQuad(point3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 555.0f, 0.0f), Vec3(0.0f, 0.0f, 555.0f), red);           // right
+    scene.AddQuad(point3(0.0f, 0.0f, 0.0f), Vec3(555.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 555.0f), white);         // floor
+    scene.AddQuad(point3(555.0f, 555.0f, 555.0f), Vec3(-555.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -555.0f), white); // ceiling
+    scene.AddQuad(point3(0.0f, 0.0f, 555.0f), Vec3(555.0f, 0.0f, 0.0f), Vec3(0.0f, 555.0f, 0.0f), white);       // back
 
-    CreateQuad(point3(-2.0f, -2.0f, 0.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 4.0f, 0.0f), back_green);
+    // Ceiling light, just below the ceiling so it isn't coplanar with it.
+    scene.AddQuad(point3(343.0f, 554.0f, 332.0f), Vec3(-130.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -105.0f), light);
 
-    CreateQuad(point3(3.0f, -2.0f, 1.0f), Vec3(0.0f, 0.0f, 4.0f), Vec3(0.0f, 4.0f, 0.0f), right_blue);
+    scene.AddSphere(point3(350.0f, 150.0f, 50.0f), 50.0f, redLight);
 
-    CreateQuad(point3(-2.0f, -3.0f, 5.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -4.0f), upper_orange);
+    // Both boxes are built axis-aligned at the origin corner, then rotated as
+    // rigid bodies and translated into place - the canonical Cornell framing.
+    scene.AddBox(point3(0.0f, 0.0f, 0.0f), point3(165.0f, 330.0f, 165.0f), volume)
+        .RotateY(static_cast<float>(degrees_to_radians(15.0)))
+        .Translate(Vec3(265.0f, 0.0f, 295.0f));
 
-    CreateQuad(point3(-2.0f, 3.0f, 5.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -4.0f), lower_teal);
-
-    return std::move(objects);
+    scene.AddBox(point3(0.0f, 0.0f, 0.0f), point3(165.0f, 165.0f, 165.0f), volume)
+        .RotateY(static_cast<float>(degrees_to_radians(-18.0)))
+        .Translate(Vec3(130.0f, 0.0f, 65.0f));
 }
 
-std::vector<std::unique_ptr<Object>> CornellBox()
+// A deliberately small scene for reading what `density` actually does. Three
+// identical fog spheres sit in a row over a lit floor, an order of magnitude
+// apart in density, with a solid red sphere buried in each so you can see how
+// far into the medium you can still see.
+//
+// Density is per world unit: the chance of crossing distance d without
+// scattering is exp(-density * d), so mean free path is 1/density. At the 2.0
+// radius here that's 10 units for the thin one (barely visible), 1 unit for the
+// middle one (smoke), and 0.1 for the thick one (nearly opaque).
+void BuildFogTest(Scene &scene)
 {
-    // Materials
-    Material red(Color(.65f, .05f, .05f),1.0f, 0.0f, DIAELECTRIC, new Texture(device,0.65f * 255.0f, 0.05f * 255.0f, 0.05f * 255.0f));
+    scene.camera.position = point3(0.0f, 3.0f, -14.0f);
+    scene.camera.target = point3(0.0f, 1.0f, 0.0f);
+    scene.camera.fov = 40.0f;
+    scene.camera.focus_dist = 14.0f;
+    scene.camera.sky = Color(0.02f, 0.03f, 0.05f);
+    scene.camera.horizon = Color(0.01f, 0.01f, 0.02f);
+    scene.maxDepth = 40; // dense fog: many scatters before a path finds the light
 
-    Material white(Color(.73f, .73f, .73f),0.2f, 0.0f, LAMBERTIAN);
+    const Material floor = Material::Lambertian(Color(0.6f, 0.6f, 0.6f));
+    const Material marker = Material::Lambertian(Color(0.9f, 0.1f, 0.1f));
 
-    Material green(Color(.12f, .45f, .15f),0.2f, 0.0f, LAMBERTIAN);
+    scene.AddQuad(point3(-20.0f, 0.0f, -20.0f),
+                  Vec3(40.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 40.0f), floor);
 
-    Material light(Color(15.0f, 15.0f, 15.0f),1.0f, 0.0f, DIFFUSE_LIGHT, new Texture(device,255.0f,255.0f,255.0f));
+    // Two overhead lights, so the fog is side-lit and its depth reads.
+    scene.AddQuad(point3(-6.0f, 9.0f, -3.0f),
+                  Vec3(12.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 6.0f),
+                  Material::Emissive(Color(1.0f, 0.95f, 0.9f), 6.0f));
 
+    const float densities[3] = {0.1f, 1.0f, 10.0f};
+    for (int i = 0; i < 3; i++)
+    {
+        const float x = (i - 1) * 5.5f;
 
-    Material red_light(Color(.65f, .05f, .05f),0.1f, 0.0f, DIFFUSE_LIGHT,new Texture(device,0.65f * 255.0f, 0.05f * 255.0f, 0.05f * 255.0f));
+        // The marker sits at the centre of the fog ball.
+        scene.AddSphere(point3(x, 2.0f, 0.0f), 0.6f, marker);
+        scene.AddVolume(point3(x, 2.0f, 0.0f), 2.0f, Color(0.9f, 0.9f, 0.95f), densities[i]);
+    }
 
-    //Wall
-    CreateQuad(point3(555.0, 0.0f, 5.0f), Vec3(0.0f, 555.0f, -4.0f), Vec3(0.0f, 0.0f, 555.0f), green);
+    // A fog-filled box on the right, to check the Box boundary path as well as
+    // the sphere one - they take different span code in the shader.
+    scene.AddSphere(point3(9.0f, 1.2f, 3.0f), 0.6f, marker);
+    scene.AddVolume(point3(7.0f, 0.0f, 1.0f), point3(11.0f, 3.0f, 5.0f),
+                    Color(0.35f, 0.55f, 0.95f), 1.0f)
+        .RotateY(static_cast<float>(degrees_to_radians(20.0)));
 
-    CreateQuad(point3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 555.0f, 0.0f), Vec3(0.0f, 0.0f, 555.0f), red);
-
-    CreateQuad(point3(343.0f, 554.0f, 332.0f), Vec3(-130.0f, 0.0f, 4.0f), Vec3(0.0f, 0.0f, -105.0f), light);
-
-    CreateQuad(point3(0.0f, 0.0f, 0.0f), Vec3(555.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 55.0f), white);
-
-    CreateQuad(point3(555.0f, 555.0f, 555.0f), Vec3(-555.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -555.0f), white);
-
-    CreateQuad(point3(0.0f, 0.0f, 555.0f), Vec3(555.0f, 0.0f, 0.0f), Vec3(0.0f, 555.0f, 0.0f), white);
-
-
-    CreateSphere(point3(350, 150, 0),50.0f,red_light);
-
-
-    //Boxes
-
-    CreateBox(point3(130, 0, 65), point3(295, 165, 230), white);
-    CreateBox(point3(265, 0, 295), point3(430, 330, 460), light);
-    
-    return std::move(objects);
+    // A solid box on the left for reference, same size, same primitive.
+    scene.AddBox(point3(-11.0f, 0.0f, 1.0f), point3(-7.0f, 3.0f, 5.0f),
+                 Material::Lambertian(Color(0.3f, 0.7f, 0.4f)))
+        .RotateY(static_cast<float>(degrees_to_radians(-20.0)));
 }
 
-
-// Builds the Ray Tracing In One Weekend "final scene" - same random
-// layout as before, just returned as a vector instead of being uploaded
-// directly. This is the *rest* position each small sphere bobs around
-// once StepPhysics starts moving them.
-std::vector<std::unique_ptr<Object>> BuildInitialScene()
+// Ray Tracing In One Weekend's "final scene": a big ground sphere, three hero
+// spheres showing off each material type, and a field of small random ones.
+// Lit by a blue sky gradient rather than by any emissive geometry.
+void BuildFinalScene(Scene &scene)
 {
-    Texture *tex = new Texture(device, "brick/textures/red_brick_diff_4k.jpg");
+    scene.camera.position = point3(13.0f, 2.0f, 3.0f);
+    scene.camera.target = point3(0.0f, 0.0f, 0.0f);
+    scene.camera.fov = 20.0f;
+    scene.camera.focus_dist = 10.0f;
+    scene.camera.defocus_angle = 0.6f;
+    scene.camera.sky = Color(0.5f, 0.7f, 1.0f);
+    scene.camera.horizon = Color(1.0f, 1.0f, 1.0f);
 
-    Material left_red(Color(1.0f, 0.2f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    // Material back_green(Color(0.2f, 1.0f, 0.2f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    // Material right_blue(Color(0.2f, 0.2f, 1.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    // Material upper_orange(Color(1.0f, 0.5f, 0.0f), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-    Material lower_teal(Color(0.2f, 0.8f, 0.8f), 0.0f, 0.0f, LAMBERTIAN, tex);
+    scene.maxDepth = 5;
 
-    Material light(Color(1.0f, 1.0f, 1.0f), 0.0f, 0.0f, DIFFUSE_LIGHT, new Texture(device,255.0f,255.0f,255.0f));
+    const Texture *brick = scene.textures.Load("brick/textures/red_brick_diff_4k.jpg");
 
-    // CreateSphere(point3(0.0f, -1000.0f, 0.0f), 1000.0f, Material(Color(.5f, .5f, .5f), 0.0f, 0.5f, LAMBERTIAN, nullptr));
+    scene.AddSphere(point3(10.0f, 10.0f,0.0f), 5.0f,Material::Emissive(Color(0.54f,0.67f,0.3f),1.0f));
 
-    CreateQuad(point3(-3.0, -2.0f, 5.0f), Vec3(0.0f, 0.0f, -4.0f), Vec3(0.0f, 4.0f, 0.0f), left_red);
+    scene.AddSphere(
+        point3(0.0f, -1000.0f, 0.0f), 1000.0f,
+        Material::Lambertian(Color(0.5f, 0.5f, 0.5f)));
 
-    CreateQuad(point3(-2.0f, 3.0f, 5.0f), Vec3(4.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -4.0f), light);
+    // The three heroes: glass, matte (brick-textured), and metal.
+    scene.AddSphere(point3(0.0f, 1.0f, 0.0f), 1.0f, Material::Dielectric(1.5f));
 
-    CreateSphere(point3(0.0f, -1000.0f, 0.0f), 1000.0f, Material(Color(.5f, .5f, .5f), 0.0f, 0.5f, LAMBERTIAN, nullptr));
-
-    CreateSphere(point3(0.0f, 1.0f, 0.0f), 1.0f, Material(Color(.5f, .1f, .0f), 0.0f, 1.5f, DIAELECTRIC, nullptr));
-
-    CreateSphere(point3(-4.0f, 1.0f, 0.0f), 1.0f, light);
-
-    CreateSphere(point3(4.0f, 1.0f, 0.0f), 1.0f, Material(Color(.7f, .6f, .5f), 0.0f, 0.0f, METAL, nullptr));
+    // Rotating a sphere can't change its shape, so RotateY only turns the
+    // texture on it - which is exactly what you want for aiming a brick seam.
+    scene.AddSphere(
+             point3(-4.0f, 1.0f, 0.0f), 1.0f,
+             Material::Lambertian(Color(1.0f, 1.0f, 1.0f)).Textured(brick))
+        .RotateY(static_cast<float>(degrees_to_radians(90.0)));
+    scene.AddSphere(point3(4.0f, 1.0f, 0.0f), 1.0f, Material::Metal(Color(0.7f, 0.6f, 0.5f)));
 
     SDL_srand(0);
     for (int a = -5; a < 5; a++)
+    {
         for (int b = -5; b < 5; b++)
         {
-            const int i = 4 + (a + 11) * 22 + b + 11;
-            const float material = SDL_randf();
-            point3 position(a + 0.9f * SDL_randf(), 0.2f, b + 0.9f * SDL_randf());
-            Material mat(Color(SDL_randf(), SDL_randf(), SDL_randf()), 0.0f, 0.0f, LAMBERTIAN, nullptr);
-            if (material < 0.8f)
+            const point3 position(a + 0.9f * SDL_randf(), 0.2f, b + 0.9f * SDL_randf());
+            const float roll = SDL_randf();
+
+            Material mat;
+            if (roll < 0.8f)
             {
-                mat.type = LAMBERTIAN;
-                mat.fuzz = 0.0f;
-                mat.refraction = 0.0f;
+                mat = Material::Lambertian(Color(SDL_randf(), SDL_randf(), SDL_randf()));
             }
-            else if (material < 0.95f)
+            else if (roll < 0.95f)
             {
-                mat.type = METAL;
-                mat.fuzz = SDL_randf() * 0.2f;
-                mat.refraction = 0.0f;
+                mat = Material::Metal(
+                    Color(0.5f + 0.5f * SDL_randf(), 0.5f + 0.5f * SDL_randf(), 0.5f + 0.5f * SDL_randf()),
+                    SDL_randf() * 0.2f);
             }
             else
             {
-                mat.type = DIAELECTRIC;
-                mat.color = Color(0.0f, 0.0f, 0.0f);
-                mat.fuzz = 0.0f;
-                mat.refraction = 2.5f;
+                mat = Material::Dielectric(1.5f);
             }
-            CreateSphere(position, 0.2f, mat);
+
+            scene.AddSphere(position, 0.2f, mat);
         }
-    return std::move(objects);
+    }
 }
 
-std::vector<std::unique_ptr<Object>> CloneObjects(const std::vector<std::unique_ptr<Object>> &src)
+// Ray Tracing: The Next Week's final scene - the one that puts every feature in
+// the book on screen at once. Two of its elements are what volumes were added
+// for:
+//
+//   * the blue "subsurface" ball: a glass sphere with a dense medium inside it,
+//     so light refracts in, scatters around, and refracts back out
+//   * the global haze: a 5000-unit sphere of extremely thin white medium
+//     wrapped around the whole scene, which is what softens the background
+//
+// Two substitutions from the book, since the engine has no procedural textures
+// yet: the earth-mapped sphere uses the brick texture, and the Perlin-noise
+// sphere is a plain matte one. Motion blur on the orange sphere is also
+// skipped - Object_GPU carries a Position2 for it, but nothing on the CPU side
+// sets it yet.
+void BuildTestAllFeatureScene(Scene &scene)
 {
-    std::vector<std::unique_ptr<Object>> out;
-    out.reserve(src.size());
-    for (const auto &obj : src)
-        out.push_back(obj->Clone());
-    return out;
+    scene.camera.position = point3(478.0f, 278.0f, -600.0f);
+    scene.camera.target = point3(278.0f, 278.0f, 0.0f);
+    scene.camera.fov = 120.0f;
+    scene.camera.focus_dist = 600.0f;
+    scene.camera.sky = Color(0.0f, 0.0f, 0.0f);
+    scene.camera.horizon = Color(0.0f, 0.0f, 0.0f);
+    // Russian roulette (starting at bounce 1 in the shader) does the actual
+    // termination work now, so this just needs to be a safe upper bound for
+    // deep mirror/glass chains plus a few GI bounces - 30 was sized for the
+    // old "always bounce to Depth" behavior and is unnecessary cost now.
+    scene.maxDepth = 3;
+
+    const Texture *brick = scene.textures.Load("brick/textures/red_brick_diff_4k.jpg");
+
+    // --- Ground: a 20x20 grid of boxes at random heights.
+    const Material ground = Material::Lambertian(Color(0.48f, 0.83f, 0.53f));
+    SDL_srand(0);
+    const int boxesPerSide = 20;
+    for (int i = 0; i < boxesPerSide; i++)
+    {
+        for (int j = 0; j < boxesPerSide; j++)
+        {
+            const float w = 100.0f;
+            const float x0 = -1000.0f + i * w;
+            const float z0 = -1000.0f + j * w;
+            const float y1 = 1.0f + SDL_randf() * 100.0f;
+            scene.AddBox(point3(x0, 0.0f, z0), point3(x0 + w, y1, z0 + w), ground);
+        }
+    }
+
+    // --- The overhead light.
+    scene.AddQuad(point3(123.0f, 554.0f, 147.0f),
+                  Vec3(300.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 265.0f),
+                  Material::Emissive(Color(1.0f, 1.0f, 1.0f), 7.0f));
+
+    // --- Hero spheres.
+    // The book gives this one motion blur; static here (see note above).
+    scene.AddSphere(point3(400.0f, 400.0f, 200.0f), 50.0f,
+                    Material::Lambertian(Color(0.7f, 0.3f, 0.1f)));
+
+    scene.AddSphere(point3(260.0f, 150.0f, 45.0f), 50.0f, Material::Dielectric(1.5f));
+
+    scene.AddSphere(point3(0.0f, 150.0f, 145.0f), 50.0f,
+                    Material::Metal(Color(0.8f, 0.8f, 0.9f), 1.0f));
+
+    // --- Subsurface scattering: a glass shell with a dense blue medium inside.
+    // Both spheres share a centre and radius - the dielectric is the visible
+    // surface, the volume is what fills it.
+    scene.AddSphere(point3(360.0f, 150.0f, 145.0f), 70.0f, Material::Dielectric(1.5f));
+    scene.AddVolume(point3(360.0f, 150.0f, 145.0f), 70.0f, Color(0.2f, 0.4f, 0.9f), 0.2f);
+
+    // --- Global haze. Very low density over a very large radius: individually
+    // each ray rarely scatters, but across the whole scene it lifts the blacks
+    // and softens everything in the distance.
+    scene.AddVolume(point3(0.0f, 0.0f, 0.0f), 5000.0f, Color(1.0f, 1.0f, 1.0f), 0.0001f);
+
+    // --- Textured sphere (earth map in the book).
+    scene.AddSphere(point3(400.0f, 200.0f, 400.0f), 100.0f,
+                    Material::Lambertian(Color(1.0f, 1.0f, 1.0f)).Textured(brick));
+
+    // --- Perlin-noise sphere in the book; plain matte here.
+    scene.AddSphere(point3(220.0f, 280.0f, 300.0f), 80.0f,
+                    Material::Lambertian(Color(0.7f, 0.7f, 0.75f)));
+
+    // --- A cluster of 1000 small spheres, built at the origin then rotated and
+    // translated into place as one rigid body.
+    const Material clusterWhite = Material::Lambertian(Color(0.73f, 0.73f, 0.73f));
+    const size_t clusterFirst = scene.Count();
+    for (int j = 0; j < 1000; j++)
+    {
+        scene.AddSphere(
+            point3(165.0f * SDL_randf(), 165.0f * SDL_randf(), 165.0f * SDL_randf()),
+            10.0f, clusterWhite);
+    }
+    scene.GroupSince(clusterFirst)
+        .RotateY(static_cast<float>(degrees_to_radians(15.0)))
+        .Translate(Vec3(-100.0f, 270.0f, 395.0f));
 }
 
+std::vector<uint32_t> LightIndices(const std::vector<Object *> &orderedObjects)
+{
+    std::vector<uint32_t> lights;
+    for (uint32_t i = 0; i < orderedObjects.size(); i++)
+        if (orderedObjects[i]->mat.type == MaterialType::DiffuseLight)
+            lights.push_back(i);
+    return lights;
+}
 
 void StepPhysics(std::vector<std::unique_ptr<Object>> &objects,
                  const std::vector<std::unique_ptr<Object>> &restPose,
@@ -414,29 +500,45 @@ void StepPhysics(std::vector<std::unique_ptr<Object>> &objects,
 // Allocates GPU-resident storage buffers plus matching upload transfer
 // buffers, sized for the worst case so no reallocation is needed as the
 // BVH shape changes frame to frame.
-SceneBuffers CreateSceneBuffers(SDL_GPUDevice *device, Uint32 maxObjects, Uint32 maxNodes)
+SceneBuffers CreateSceneBuffers(SDL_GPUDevice *device, Uint32 maxObjects, Uint32 maxNodes, Uint32 maxLights)
 {
     SceneBuffers sb{};
+    sb.maxObjects = maxObjects;
+    sb.maxNodes = maxNodes;
+    sb.maxLights = maxLights;
 
-    SDL_GPUBufferCreateInfo objectInfo{
-        .usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ,
-        .size = static_cast<Uint32>(maxObjects * sizeof(Object_GPU))};
-    SDL_GPUBufferCreateInfo bvhInfo{
-        .usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ,
-        .size = static_cast<Uint32>(maxNodes * sizeof(BVHNode_GPU))};
+    SDL_Log("chat");
+
+    SDL_GPUBufferCreateInfo objectInfo{};
+    objectInfo.usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
+    objectInfo.size = static_cast<Uint32>(maxObjects * sizeof(Object_GPU));
+    SDL_GPUBufferCreateInfo bvhInfo{};
+    bvhInfo.usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
+    bvhInfo.size = static_cast<Uint32>(maxNodes * sizeof(BVHNode_GPU));
+
+    SDL_GPUBufferCreateInfo lightInfo{};
+    lightInfo.usage = SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
+    lightInfo.size = static_cast<Uint32>(maxLights * sizeof(uint32_t));
+
     sb.objectBuffer = SDL_CreateGPUBuffer(device, &objectInfo);
     sb.bvhBuffer = SDL_CreateGPUBuffer(device, &bvhInfo);
+    sb.lightIDBuffer = SDL_CreateGPUBuffer(device, &lightInfo);
 
-    SDL_GPUTransferBufferCreateInfo objectTransferInfo{
-        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = static_cast<Uint32>(maxObjects * sizeof(Object_GPU))};
-    SDL_GPUTransferBufferCreateInfo bvhTransferInfo{
-        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = static_cast<Uint32>(maxNodes * sizeof(BVHNode_GPU))};
+    SDL_GPUTransferBufferCreateInfo objectTransferInfo{};
+    objectTransferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    objectTransferInfo.size = static_cast<Uint32>(maxObjects * sizeof(Object_GPU));
+    SDL_GPUTransferBufferCreateInfo bvhTransferInfo{};
+    bvhTransferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    bvhTransferInfo.size = static_cast<Uint32>(maxNodes * sizeof(BVHNode_GPU));
+    SDL_GPUTransferBufferCreateInfo lightIDTransferInfo{};
+    lightIDTransferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    lightIDTransferInfo.size = static_cast<Uint32>(maxLights * sizeof(uint32_t));
+
     sb.objectTransfer = SDL_CreateGPUTransferBuffer(device, &objectTransferInfo);
     sb.bvhTransfer = SDL_CreateGPUTransferBuffer(device, &bvhTransferInfo);
+    sb.lightIDTransfer = SDL_CreateGPUTransferBuffer(device, &lightIDTransferInfo);
 
-    if (!sb.objectTransfer || !sb.bvhBuffer || !sb.objectTransfer || !sb.bvhTransfer)
+    if (!sb.objectTransfer || !sb.bvhBuffer || !sb.lightIDBuffer || !sb.objectTransfer || !sb.bvhTransfer || !sb.lightIDTransfer)
     {
         SDL_Log("Failed to create scene buffers: %s", SDL_GetError());
     }
@@ -450,17 +552,7 @@ std::vector<Object_GPU> ObjectsToGPUObjects(const std::vector<Object *> &objects
 
     for (Object *obj : objects)
     {
-        Object_GPU obj_gpu = obj->CreateObjectGPU();
-
-        if (!obj->mat.texture)
-            obj_gpu.textureID = static_cast<Uint32>(-1);
-        else
-        {
-            obj_gpu.textureID = textureIDCounter++;
-            textures.push_back(obj->mat.texture);
-        }
-
-        list.push_back(obj_gpu);
+        list.push_back(obj->CreateObjectGPU());
     }
 
     return list;
@@ -480,27 +572,40 @@ std::vector<BVHNode_GPU> NodesToGPUNodes(const std::vector<BVH_node *> &nodes)
     return list;
 }
 
-
-
 // Re-maps the persistent transfer buffers and re-uploads them into the
 // persistent GPU buffers. `cycle = true` lets SDL_gpu double-buffer this
 // resource internally instead of stalling on the previous frame's usage.
 bool UploadScene(
     SceneBuffers &sb,
     const std::vector<Object_GPU> &objects,
-    const std::vector<BVHNode_GPU> &nodes)
+    const std::vector<BVHNode_GPU> &nodes,
+    const std::vector<uint32_t> &lightIDs)
 {
+    // These buffers are fixed-size; without this check an oversized scene would
+    // memcpy straight past the end of the mapped transfer buffer.
+    if (objects.size() > sb.maxObjects || nodes.size() > sb.maxNodes || lightIDs.size() > sb.maxLights)
+    {
+        SDL_Log(
+            "Scene too large for its buffers: %zu/%u objects, %zu/%u nodes",
+            objects.size(), sb.maxObjects, nodes.size(), sb.maxNodes);
+        return false;
+    }
+
     void *objectData = SDL_MapGPUTransferBuffer(device, sb.objectTransfer, true);
     void *bvhData = SDL_MapGPUTransferBuffer(device, sb.bvhTransfer, true);
-    if (!objectData || !bvhData)
+    void *lightIDData = SDL_MapGPUTransferBuffer(device, sb.lightIDTransfer, true);
+
+    if (!objectData || !bvhData || !lightIDData)
     {
         SDL_Log("Failed to map scene transfer buffers: %s", SDL_GetError());
         return false;
     }
     SDL_memcpy(objectData, objects.data(), objects.size() * sizeof(Object_GPU));
     SDL_memcpy(bvhData, nodes.data(), nodes.size() * sizeof(BVHNode_GPU));
+    SDL_memcpy(lightIDData, lightIDs.data(), lightIDs.size() * sizeof(uint32_t));
     SDL_UnmapGPUTransferBuffer(device, sb.objectTransfer);
     SDL_UnmapGPUTransferBuffer(device, sb.bvhTransfer);
+    SDL_UnmapGPUTransferBuffer(device, sb.lightIDTransfer);
 
     SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(device);
     if (!command_buffer)
@@ -515,56 +620,60 @@ bool UploadScene(
         return false;
     }
 
-    SDL_GPUTransferBufferLocation objectSrc{.transfer_buffer = sb.objectTransfer};
-    SDL_GPUBufferRegion objectDst{
-        .buffer = sb.objectBuffer,
-        .size = static_cast<Uint32>(objects.size() * sizeof(Object_GPU))};
+    SDL_GPUTransferBufferLocation objectSrc{};
+    objectSrc.transfer_buffer = sb.objectTransfer;
+    SDL_GPUBufferRegion objectDst{};
+    objectDst.buffer = sb.objectBuffer;
+    objectDst.size = static_cast<Uint32>(objects.size() * sizeof(Object_GPU));
     SDL_UploadToGPUBuffer(copy_pass, &objectSrc, &objectDst, true);
 
-    SDL_GPUTransferBufferLocation bvhSrc{.transfer_buffer = sb.bvhTransfer};
-    SDL_GPUBufferRegion bvhDst{
-        .buffer = sb.bvhBuffer,
-        .size = static_cast<Uint32>(nodes.size() * sizeof(BVHNode_GPU))};
+    SDL_GPUTransferBufferLocation bvhSrc{};
+    bvhSrc.transfer_buffer = sb.bvhTransfer;
+    SDL_GPUBufferRegion bvhDst{};
+    bvhDst.buffer = sb.bvhBuffer;
+    bvhDst.size = static_cast<Uint32>(nodes.size() * sizeof(BVHNode_GPU));
     SDL_UploadToGPUBuffer(copy_pass, &bvhSrc, &bvhDst, true);
 
+    SDL_GPUTransferBufferLocation lightIDSrc{};
+    lightIDSrc.transfer_buffer = sb.lightIDTransfer;
+    SDL_GPUBufferRegion lightIDDst{};
+    lightIDDst.buffer = sb.lightIDBuffer;
+    lightIDDst.size = static_cast<Uint32>(lightIDs.size() * sizeof(uint32_t));
+    SDL_UploadToGPUBuffer(copy_pass, &lightIDSrc, &lightIDDst, true);
+
     SDL_EndGPUCopyPass(copy_pass);
-    SDL_SubmitGPUCommandBuffer(command_buffer);
+    if (!SDL_SubmitGPUCommandBuffer(command_buffer))
+    {
+        SDL_Log("Failed to submit scene upload: %s", SDL_GetError());
+        return false;
+    }
     return true;
+}
+
+uint32_t CountLights(const std::vector<std::unique_ptr<Object>> &objects)
+{
+    return static_cast<uint32_t>(std::count_if(objects.begin(), objects.end(),
+                                               [](const auto &o)
+                                               { return o->mat.type == MaterialType::DiffuseLight; }));
 }
 
 int main()
 {
-    Config config = {
-        .source_x = 278.0f,
-        .source_y = 278.0f,
-        .source_z = -800.0f,
-        .fov = 40.0f,
-        .target_x = 278.0f,
-        .target_y = 278.0f,
-        .target_z = 0.0f,
-        .focus_dist = 20.0f,
-        .defocus_angle = 0.6f,
-        .up_x = 0.0f,
-        .up_y = 1.0f,
-        .up_z = 0.0f,
-        .oof = 0.6f,
-        // .sky_r = 0.5f,
-        // .sky_g = 0.7f,
-        // .sky_b = 1.0f,
-        .sky_r = 0.0f,
-        .sky_g = 0.0f,
-        .sky_b = 0.0f,
-        .width = 1980,
-        .horizon_r = 0.0f,
-        .horizon_g = 0.0f,
-        .horizon_b = 0.0f,
-        .height = 1080,
-        .samples = 2, // samples per frame - lower this if the frame rate is too low
-        .batches = 1, // fixed: each frame is its own accumulation (see note below)
-        .batch = 0,   // fixed at 0 - Batch>0 in the shader means "blend with last frame",
-                      // which would ghost since both the scene and camera move every frame
-        .depth = 5,
-        .num_spheres = SCENE_OBJECTS};
+    // Render settings. Camera framing and sky come from the scene itself and
+    // are filled in below, once it's built.
+    Config config = {};
+    config.up_x = 0.0f;
+    config.up_y = 1.0f;
+    config.up_z = 0.0f;
+    config.oof = 0.6f;
+    config.width = 1980;
+    config.height = 1080;
+    config.samples = 1; // samples per frame - lower this if the frame rate is too low
+    config.batches = 1; // each frame is one accumulation step
+    config.batch = 0;   // Batch > 0 blends with the previous frame; driven by
+                        // accumulationFrame below and reset when the camera moves
+
+    config.renderType = RenderType::Path_Tracing; // Type of rendering (Path tracing or Ray Tracing)
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -577,7 +686,7 @@ int main()
         SDL_Log("Failed to create window: %s", SDL_GetError());
         return 1;
     }
-    device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_MSL, false, nullptr);
+    device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_MSL, true, nullptr);
     if (!device)
     {
         SDL_Log("Failed to create GPU device: %s", SDL_GetError());
@@ -586,21 +695,13 @@ int main()
 
     SDL_Log("Backend: %s", SDL_GetGPUDeviceDriver(device));
 
-    Texture *defaultWhiteTexturePtr = Texture::CreateSolidColor(device, 255, 255, 255, 255);
-    if (!defaultWhiteTexturePtr->gpuTexture)
-    {
-        SDL_Log("Failed to create default white texture");
-        return 1;
-    }
-    SDL_GPUTexture *defaultWhiteTexture = defaultWhiteTexturePtr->gpuTexture;
-
     if (!SDL_ClaimWindowForGPUDevice(device, window))
     {
         SDL_Log("Failed to claim window for GPU device: %s", SDL_GetError());
         return 1;
     }
     SDL_RaiseWindow(window);
-    SDL_GPUComputePipeline *pipeline = CreateComputePipeline(device);
+    SDL_GPUComputePipeline *pipeline = CreatePathTraceComputePipeline(device);
     if (!pipeline)
     {
         SDL_Log("Failed to create compute pipeline.");
@@ -620,14 +721,19 @@ int main()
         return 1;
     }
 
-    SDL_GPUTextureCreateInfo textureInfo{
-        .usage = SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_WRITE | SDL_GPU_TEXTUREUSAGE_SAMPLER,
-        .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GPU_TEXTUREFORMAT_R32G32B32A32_FLOAT,
-        .width = config.width,
-        .height = config.height,
-        .num_levels = 1,
-        .layer_count_or_depth = 1};
+    SDL_GPUTextureCreateInfo textureInfo = {};
+    textureInfo.type = SDL_GPU_TEXTURETYPE_2D;
+    textureInfo.width = config.width;
+    textureInfo.height = config.height;
+    textureInfo.layer_count_or_depth = 1;
+    textureInfo.num_levels = 1;
+    // R16G16B16A16 instead of R32G32B32A32: halves the bandwidth on this
+    // texture, which now matters more than before since the shader reads
+    // its previous contents back every frame to blend for temporal
+    // accumulation, not just writing it once.
+    textureInfo.format = SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT;
+    textureInfo.usage = SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_WRITE | SDL_GPU_TEXTUREUSAGE_SAMPLER;
+
     SDL_GPUTexture *texture1 = SDL_CreateGPUTexture(device, &textureInfo);
     if (!texture1)
     {
@@ -635,64 +741,61 @@ int main()
         return 1;
     }
 
-    // Rest pose (immutable) and the live, physics-mutated copy.
-    const std::vector<std::unique_ptr<Object>> restPose = CornellBox();
-    std::vector<std::unique_ptr<Object>> liveObjects = CloneObjects(restPose);
+    // The scene owns both the geometry and its textures, so ids are already
+    // assigned by the time the objects exist - no separate registration pass.
+    // Swapping scenes is a one-liner: each builder sets up its own geometry,
+    // textures, camera framing and sky.
+    Scene scene;
+    // Pick one: BuildCornellBox / BuildFogTest / BuildFinalScene / BuildNextWeekFinalScene
+    BuildTestAllFeatureScene(scene);
+    SDL_Log("Scene: %zu objects, %zu texture(s)", scene.Count(), scene.textures.Count());
+
+    config.sky_r = scene.camera.sky.x;
+    config.sky_g = scene.camera.sky.y;
+    config.sky_b = scene.camera.sky.z;
+    config.horizon_r = scene.camera.horizon.x;
+    config.horizon_g = scene.camera.horizon.y;
+    config.horizon_b = scene.camera.horizon.z;
+    config.depth = scene.maxDepth;
+
+    // The scene's own objects are the immutable rest pose; physics mutates the
+    // clone, and each frame's BVH is built over the clone.
+    std::vector<std::unique_ptr<Object>> liveObjects = scene.CloneObjects();
 
     std::vector<BVH_node *> nodes;
     std::vector<Object *> orderedObjects;
+    std::vector<uint32_t> lightIDs;
 
-    // Build the GPU texture array from all textures used by the scene.
-    std::vector<SDL_GPUTexture *> textureHandles;
-
-    for (Texture *texture : textures)
-    {
-        if (texture != nullptr && texture->gpuTexture != nullptr)
-        {
-            textureHandles.push_back(texture->gpuTexture);
-        }
-    }
-
-    Uint32 textureWidth = 1;
-    Uint32 textureHeight = 1;
-
-    if (!textures.empty())
-    {
-        textureWidth = static_cast<Uint32>(textures[0]->Width());
-        textureHeight = static_cast<Uint32>(textures[0]->Height());
-    }
-
-    SDL_GPUTexture *globalTextureArray =
-        CreateTextureArray(
-            device,
-            textureHandles,
-            defaultWhiteTexture,
-            textureWidth,
-            textureHeight);
-
+    SDL_GPUTexture *globalTextureArray = scene.textures.BuildGPUArray(device);
     if (!globalTextureArray)
     {
-        SDL_Log("Failed to create global texture array");
+        SDL_Log("Failed to build the scene texture array");
         return 1;
     }
 
-    SceneBuffers sceneBuffers = CreateSceneBuffers(device, MAX_OBJECTS, MAX_NODES);
+    SDL_Log("what");
+
+    // Sized from the scene that was actually built, so adding geometry can't
+    // quietly overrun a buffer dimensioned for some other scene.
+    const Uint32 maxObjects = static_cast<Uint32>(scene.Count());
+    const Uint32 maxLights = CountLights(liveObjects);
+    SceneBuffers sceneBuffers = CreateSceneBuffers(device, maxObjects, MaxNodesFor(maxObjects), maxLights);
     if (!sceneBuffers.objectBuffer || !sceneBuffers.bvhBuffer)
     {
         SDL_Log("Failed to create scene buffers");
         return 1;
     }
 
-    // --- Camera setup: derive an initial yaw/pitch that reproduces the
-    // original fixed Source/Target framing, then hand control over to
-    // mouse-look + WASD from here on.
-    const Vec3<float> initialForward = normalize(
-        Vec3<float>{config.target_x, config.target_y, config.target_z} -
-        Vec3<float>{config.source_x, config.source_y, config.source_z});
-    Camera camera(
-        Vec3<float>{config.source_x, config.source_y, config.source_z},
-        SDL_atan2f(initialForward.z, initialForward.x),
-        SDL_asinf(initialForward.y));
+    // --- Camera setup: derive an initial yaw/pitch that reproduces the scene's
+    // authored framing, then hand control over to mouse-look + WASD from here on.
+    const Vec3<float> initialForward =
+        normalize(scene.camera.target - scene.camera.position);
+
+    scene.camera.yaw = SDL_atan2f(initialForward.z, initialForward.x);
+    scene.camera.pitch =  SDL_asinf(initialForward.y);
+    scene.camera.fov;
+    scene.camera.focus_dist;
+    scene.camera.defocus_angle;
 
     bool mouseCaptured = true;
     SDL_SetWindowRelativeMouseMode(window, true);
@@ -709,6 +812,15 @@ int main()
     double currentFps = 0.0;
 
     bool running = true;
+    size_t loggedNodeCount = static_cast<size_t>(-1);
+
+    bool sceneDirty = true; // becomes true again once StepPhysics does real work
+
+    BuildBVH(liveObjects, nodes, orderedObjects);
+    lightIDs = LightIndices(orderedObjects);
+    config.num_spheres = static_cast<Uint32>(orderedObjects.size());
+    config.num_lights = static_cast<Uint32>(lightIDs.size());
+    UploadScene(sceneBuffers, ObjectsToGPUObjects(orderedObjects), NodesToGPUNodes(nodes), lightIDs);
 
     while (running)
     {
@@ -755,33 +867,33 @@ int main()
         // 1. Move the camera (mouse-look + WASD/Space/Ctrl, sprint on Shift).
         const bool *keys = SDL_GetKeyboardState(nullptr);
 
-        Vec3<float> oldCameraPosition = camera.position;
-        float oldYaw = camera.yaw;
-        float oldPitch = camera.pitch;
+        Vec3<float> oldCameraPosition = scene.camera.position;
+        float oldYaw = scene.camera.yaw;
+        float oldPitch = scene.camera.pitch;
         if (mouseCaptured)
         {
-            camera.Update(keys, mouseDX, mouseDY, dt);
+            scene.camera.Update(keys, mouseDX, mouseDY, dt);
         }
 
-        const Vec3<float> forward = camera.Forward();
-        config.source_x = camera.position.x;
-        config.source_y = camera.position.y;
-        config.source_z = camera.position.z;
-        config.target_x = camera.position.x + forward.x;
-        config.target_y = camera.position.y + forward.y;
-        config.target_z = camera.position.z + forward.z;
-        config.focus_dist = camera.focus_dist;
-        config.defocus_angle = camera.defocus_angle;
-        config.fov = camera.fov;
+        const Vec3<float> forward = scene.camera.Forward();
+        config.source_x = scene.camera.position.x;
+        config.source_y = scene.camera.position.y;
+        config.source_z = scene.camera.position.z;
+        config.target_x = scene.camera.position.x + forward.x;
+        config.target_y = scene.camera.position.y + forward.y;
+        config.target_z = scene.camera.position.z + forward.z;
+        config.focus_dist = scene.camera.focus_dist;
+        config.defocus_angle = scene.camera.defocus_angle;
+        config.fov = scene.camera.fov;
         // up_x/up_y/up_z stay fixed at (0,1,0) - this is a roll-free FPS camera.
 
         // Did the camera moved
         bool cameraMoved =
-            camera.position.x != oldCameraPosition.x ||
-            camera.position.y != oldCameraPosition.y ||
-            camera.position.z != oldCameraPosition.z ||
-            camera.yaw != oldYaw ||
-            camera.pitch != oldPitch;
+            scene.camera.position.x != oldCameraPosition.x ||
+            scene.camera.position.y != oldCameraPosition.y ||
+            scene.camera.position.z != oldCameraPosition.z ||
+            scene.camera.yaw != oldYaw ||
+            scene.camera.pitch != oldPitch;
 
         // Reset accumulation
         if (cameraMoved)
@@ -794,20 +906,28 @@ int main()
         // 2. Step motion/physics.
         // StepPhysics(liveObjects, restPose, static_cast<float>(elapsedTime));
 
-        // 3. Rebuild the BVH around the new positions.
-        BuildBVH(liveObjects, nodes, orderedObjects);
-        SDL_Log(
-            "BVH: %zu nodes, %zu ordered objects",
-            nodes.size(),
-            orderedObjects.size());
-
-        config.num_spheres = static_cast<Uint32>(orderedObjects.size());
-
-        // 4. Upload the reordered spheres + flattened nodes.
-        if (!UploadScene(sceneBuffers, ObjectsToGPUObjects(orderedObjects), NodesToGPUNodes(nodes)))
+        // 3. Rebuild the BVH around the new positions. Log only when its shape
+        // changes - this runs every frame, and logging unconditionally buried
+        // every other message under 60 lines a second.
+        if (sceneDirty)
         {
-            SDL_Log("Failed to upload scene");
-            break;
+            BuildBVH(liveObjects, nodes, orderedObjects);
+            lightIDs = LightIndices(orderedObjects);
+            config.num_spheres = static_cast<Uint32>(orderedObjects.size());
+            config.num_lights = static_cast<Uint32>(lightIDs.size());
+            // 4. Upload the reordered spheres + flattened nodes.
+            if (!UploadScene(sceneBuffers, ObjectsToGPUObjects(orderedObjects), NodesToGPUNodes(nodes), lightIDs))
+            {
+                SDL_Log("Failed to upload scene");
+                break;
+            }
+            sceneDirty = false;
+        }
+
+        if (nodes.size() != loggedNodeCount)
+        {
+            loggedNodeCount = nodes.size();
+            SDL_Log("BVH: %zu nodes, %zu ordered objects", nodes.size(), orderedObjects.size());
         }
 
         SDL_GPUCommandBuffer *command_buffer = SDL_AcquireGPUCommandBuffer(device);
@@ -818,8 +938,8 @@ int main()
         }
 
         SDL_PushGPUComputeUniformData(command_buffer, 0, &config, sizeof(config));
-        SDL_GPUStorageTextureReadWriteBinding storageTextureBinding = {
-            .texture = texture1};
+        SDL_GPUStorageTextureReadWriteBinding storageTextureBinding = {};
+        storageTextureBinding.texture = texture1;
         SDL_GPUComputePass *compute_pass = SDL_BeginGPUComputePass(command_buffer, &storageTextureBinding, 1, nullptr, 0);
         if (!compute_pass)
         {
@@ -827,12 +947,12 @@ int main()
             return 1;
         }
         SDL_BindGPUComputePipeline(compute_pass, pipeline);
-        SDL_GPUBuffer *storageBuffers[2] = {sceneBuffers.objectBuffer, sceneBuffers.bvhBuffer};
-        SDL_BindGPUComputeStorageBuffers(compute_pass, 0, storageBuffers, 2);
+        SDL_GPUBuffer *storageBuffers[3] = {sceneBuffers.objectBuffer, sceneBuffers.bvhBuffer, sceneBuffers.lightIDBuffer};
+        SDL_BindGPUComputeStorageBuffers(compute_pass, 0, storageBuffers, 3);
 
-        SDL_GPUTextureSamplerBinding textureBinding{
-            .texture = globalTextureArray,
-            .sampler = linearSampler};
+        SDL_GPUTextureSamplerBinding textureBinding = {};
+        textureBinding.texture = globalTextureArray;
+        textureBinding.sampler = linearSampler;
 
         SDL_BindGPUComputeSamplers(
             compute_pass,
@@ -844,27 +964,34 @@ int main()
         SDL_GPUTexture *swapchain;
         Uint32 width;
         Uint32 height;
-        SDL_WaitForGPUSwapchain(device, window);
-        if (!SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain, &width, &height))
+        if (!SDL_WaitAndAcquireGPUSwapchainTexture(
+                command_buffer, window, &swapchain, &width, &height))
         {
             SDL_Log("Failed to acquire swapchain texture: %s", SDL_GetError());
-            SDL_SubmitGPUCommandBuffer(command_buffer);
+            SDL_CancelGPUCommandBuffer(command_buffer);
             continue;
         }
         if (!swapchain)
         {
-            SDL_SubmitGPUCommandBuffer(command_buffer);
+            SDL_CancelGPUCommandBuffer(command_buffer);
             continue;
         }
-        SDL_GPUBlitInfo blit = {
-            .source.texture = texture1,
-            .source.w = config.width,
-            .source.h = config.height,
-            .destination.texture = swapchain,
-            .destination.w = width,
-            .destination.h = height};
+        SDL_GPUBlitInfo blit = {};
+        blit.source = {};
+        blit.source.texture = texture1;
+        blit.source.w = config.width;
+        blit.source.h = config.height;
+        blit.destination = {};
+        blit.destination.texture = swapchain;
+        blit.destination.w = width;
+        blit.destination.h = height;
+
         SDL_BlitGPUTexture(command_buffer, &blit);
-        SDL_SubmitGPUCommandBuffer(command_buffer);
+        if (!SDL_SubmitGPUCommandBuffer(command_buffer))
+        {
+            SDL_Log("Failed to submit scene upload: %s", SDL_GetError());
+            return false;
+        }
 
         // 5. FPS bookkeeping - update the readout twice a second so it's
         // readable instead of flickering every frame.
@@ -878,12 +1005,13 @@ int main()
         }
         char title[192] = {0};
         SDL_snprintf(title, sizeof(title),
-                     "%s | %.0f fps (%s, press V) | %u nodes / %u spheres | mouse: %s (Esc)",
+                     "%s | %.0f fps (%s, press V) | %u nodes / %u objects | %u spp | mouse: %s (Esc)",
                      SDL_GetGPUDeviceDriver(device),
                      currentFps,
                      fpsCapEnabled ? "capped" : "uncapped",
                      static_cast<Uint32>(nodes.size()),
                      static_cast<Uint32>(orderedObjects.size()),
+                     (accumulationFrame + 1) * config.samples,
                      mouseCaptured ? "captured" : "free");
         SDL_SetWindowTitle(window, title);
 

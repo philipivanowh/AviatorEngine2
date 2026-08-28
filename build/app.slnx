@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution>
+	<Configurations>
+		<BuildType Name="Debug"/>
+		<BuildType Name="Release"/>
+		<BuildType Name="MinSizeRel"/>
+		<BuildType Name="RelWithDebInfo"/>
+		<Platform Name="x64"/>
+	</Configurations>
+	<Project Path="ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="01b6e8e4-ce86-3583-ac07-a0053bcd0e58" DefaultStartup="true">
+		<BuildDependency Project="_deps/sdl3-build/SDL3-shared.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/SDL3_image-shared.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3-build/SDL3_test.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3-build/SDL_uclibc.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="app.vcxproj"/>
+	</Project>
+	<Project Path="INSTALL.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2e32294e-0534-3207-bb55-82fc7fad64d7">
+		<BuildDependency Project="ALL_BUILD.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="_deps/sdl3-build/SDL3-shared.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bdc9853c-ed7a-3b24-89fa-e1662b939f5d">
+		<BuildDependency Project="_deps/sdl3-build/SDL_uclibc.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/SDL3_image-shared.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="beac3065-f746-3d8d-b169-171de8952165">
+		<BuildDependency Project="_deps/sdl3-build/SDL3-shared.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/libwebpmux.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libpng-build/png_shared.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webp.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webpdemux.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3-build/SDL3_test.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="74fcb67f-055c-3177-beaf-a6d6518def82">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3-build/SDL_uclibc.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4b46d662-45a0-3f20-bf92-08887813498a">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f8cdc1fd-d967-37ed-81c9-8ce369be6e92"/>
+	<Project Path="app.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="99f17542-5633-33bd-ae54-c880f55af336">
+		<BuildDependency Project="_deps/sdl3-build/SDL3-shared.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/SDL3_image-shared.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/libwebpmux.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b67fa991-cd9a-3bd8-9080-b0af07bc9cca">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webp.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libpng-build/png_genfiles.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3821f23a-cf45-3af7-b853-36d06027d15e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libpng-build/png_shared.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="72ccf03c-e680-34d9-aa87-f8557659ee4e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libpng-build/png_genfiles.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/zlib-build/zlibstatic.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/sharpyuv.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="10f22b2a-03d6-3a80-8be4-10e307c51dd5">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/webp.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="fdfc1d37-8bee-3a9d-9fb0-ea0012b55472">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/sharpyuv.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webpdecode.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webpdsp.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webpencode.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webputils.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/webpdecode.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e86537fc-3856-3a86-b542-037c4888e662">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/webpdemux.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="25a68f88-29da-3eda-8959-9ac1547d25bf">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webp.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/webpdsp.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="738522f3-b277-3a03-b533-30dc34905a8f">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/webpencode.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="0d5ae940-5f59-3b0b-be22-47cd4ca208d6">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/libwebp-build/webputils.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="71b5757a-e26b-3f30-93d5-d6bdc0ed3545">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="_deps/sdl3_image-build/external/zlib-build/zlibstatic.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c97bfc91-9446-3369-a598-ae72a48be06e">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+</Solution>

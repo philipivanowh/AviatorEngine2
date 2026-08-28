@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../libLLVMDxilValidation.a CMakeFiles/LLVMDxilValidation.dir/DxilContainerValidation.cpp.o CMakeFiles/LLVMDxilValidation.dir/DxilValidation.cpp.o CMakeFiles/LLVMDxilValidation.dir/DxilValidationUtils.cpp.o
-/usr/bin/ranlib ../libLLVMDxilValidation.a

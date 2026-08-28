@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../../lib/libclangDriver.a CMakeFiles/clangDriver.dir/DriverOptions.cpp.o
-/usr/bin/ranlib ../../../../lib/libclangDriver.a

@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../../lib/libdxclib.a CMakeFiles/dxclib.dir/dxc.cpp.o
-/usr/bin/ranlib ../../../../lib/libdxclib.a

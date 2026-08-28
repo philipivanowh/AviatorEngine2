@@ -1,1 +1,0 @@
-/usr/bin/clang++ -g -mmacosx-version-min=11.0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/spirv-dis.dir/util/flags.cpp.o" "CMakeFiles/spirv-dis.dir/dis/dis.cpp.o" "CMakeFiles/spirv-dis.dir/io.cpp.o" -o ../../../../../bin/spirv-dis  ../source/libSPIRV-Tools.a

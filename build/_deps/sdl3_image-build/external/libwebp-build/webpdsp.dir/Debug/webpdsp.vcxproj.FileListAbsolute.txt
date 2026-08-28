@@ -1,0 +1,1 @@
+C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpdsp.dir\Debug\webpdsp.lib

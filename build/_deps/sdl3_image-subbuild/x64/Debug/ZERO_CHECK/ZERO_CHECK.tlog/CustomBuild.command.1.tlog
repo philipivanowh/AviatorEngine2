@@ -1,0 +1,10 @@
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\_DEPS\SDL3_IMAGE-SUBBUILD\CMAKEFILES\0BB86957E715269CF857C353A60F06D6\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

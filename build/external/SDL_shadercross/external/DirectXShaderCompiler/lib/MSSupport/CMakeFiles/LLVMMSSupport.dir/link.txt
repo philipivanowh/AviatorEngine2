@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../libLLVMMSSupport.a CMakeFiles/LLVMMSSupport.dir/MSFileSystemImpl.cpp.o
-/usr/bin/ranlib ../libLLVMMSSupport.a

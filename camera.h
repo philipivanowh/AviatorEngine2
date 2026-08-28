@@ -16,12 +16,15 @@
 class Camera
 {
 public:
-    Vec3<float> position;
+    point3 position;
+    point3 target{0.0f, 0.0f, 0.0f};
     float yaw;   // radians, rotation around world Y
     float pitch; // radians, clamped to +-PITCH_LIMIT
     float focus_dist;
     float fov;
     float defocus_angle;
+    Color sky{0.0f, 0.0f, 0.0f};
+    Color horizon{0.0f, 0.0f, 0.0f};
 
     Camera(Vec3<float> position,float yaw,float pitch){
         this->position = position;

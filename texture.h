@@ -6,138 +6,269 @@
 #include "external/stb_image.h"
 #include "common.h"
 
-#include <cstdlib>
-#include <iostream>
+#include <SDL3/SDL.h>
 
+#include <cstring>
+#include <memory>
+#include <string>
+#include <vector>
+
+// Sentinel stored in Object_GPU::textureID when a material has no image
+// texture. Must match INVALID_TEXTURE in shader.comp.hlsl.
+static constexpr Uint32 kNoTexture = 0xFFFFFFFFu;
+
+// The shader samples one Texture2DArray, so every layer has to be the same
+// size. Textures larger than this are downsampled on upload; without a cap a
+// single 4K source would force every other layer up to 4096x4096 too (64 MB
+// each), which is how the old CreateTextureArray blew up on mixed sizes.
+static constexpr int kMaxTextureArrayDimension = 2048;
+
+// A Texture is plain CPU-side RGBA8 image data plus the layer index it will
+// occupy in the scene's GPU texture array. It is NOT a GPU resource on its own
+// - TextureLibrary::BuildGPUArray() packs every registered texture into a
+// single SDL_GPUTexture, which is the only thing the shader ever binds.
+//
+// Don't construct these directly; go through a TextureLibrary so the library
+// owns them and the ids stay in sync with the array layers:
+//
+//     Texture *brick = scene.textures.Load("brick/textures/red_brick_diff_4k.jpg");
+//
+// Solid colours do NOT need a Texture. A material's albedo already is a solid
+// colour - reach for a Texture only when you have actual image detail.
 class Texture
 {
 public:
-    // Loads a texture from an image file on disk.
-    Texture(SDL_GPUDevice *device, const char *filepath)
-    {
-        unsigned char *cpuPixels = stbi_load(filepath, &image_width, &image_height, &channels, 4);
-        if (!cpuPixels)
-        {
-            SDL_Log("STB failed to load image '%s': %s", filepath, stbi_failure_reason());
-            return;
-        }
-        UploadPixels(device, cpuPixels, image_width, image_height);
-        stbi_image_free(cpuPixels);
-    }
-
-    Texture(SDL_GPUDevice *device, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255)
-    {
-        const unsigned char pixel[4] = {r, g, b, a};
-        Texture(device, pixel, 1, 1);
-    }
-
-    // Builds a texture directly from raw RGBA8 pixel data already in memory -
-    // no file, no stb_image. Used for procedural/fallback textures such as
-    // the default white texture padded into unused GlobalTextures[] slots.
-    Texture(SDL_GPUDevice *device, const unsigned char *rgbaPixels, int width, int height)
-    {
-        image_width = width;
-        image_height = height;
-        channels = 4;
-        UploadPixels(device, rgbaPixels, width, height);
-    }
-
-    // Convenience factory: a 1x1 texture of a single solid color.
-    static Texture *CreateSolidColor(SDL_GPUDevice *device, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255)
-    {
-        const unsigned char pixel[4] = {r, g, b, a};
-        return new Texture(device, pixel, 1, 1);
-    }
-
-    ~Texture()
-    {
-        if (gpuTexture && owningDevice)
-        {
-            SDL_ReleaseGPUTexture(owningDevice, gpuTexture);
-        }
-    }
-
-    int Width() const
-    {
-        return image_width;
-    }
-
-    int Height() const
-    {
-        return image_height;
-    }
-
     Texture(const Texture &) = delete;
     Texture &operator=(const Texture &) = delete;
 
-    SDL_GPUTexture *gpuTexture = nullptr;
-    int image_width = 0;
-    int image_height = 0;
+    int Width() const { return width; }
+    int Height() const { return height; }
+
+    // Layer index into the GPU texture array. Assigned at registration time.
+    Uint32 Id() const { return id; }
+
+    bool Valid() const { return width > 0 && height > 0 && !pixels.empty(); }
 
 private:
-    void UploadPixels(SDL_GPUDevice *device, const unsigned char *pixels, int width, int height)
+    friend class TextureLibrary;
+
+    Texture(Uint32 id, std::vector<unsigned char> rgba, int width, int height)
+        : pixels(std::move(rgba)), width(width), height(height), id(id)
     {
-        owningDevice = device;
-        Uint32 imageSizeInBytes = static_cast<Uint32>(width) * static_cast<Uint32>(height) * 4;
-
-        SDL_GPUTransferBufferCreateInfo transferInfo{};
-        transferInfo.size = imageSizeInBytes;
-        transferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-
-        SDL_GPUTransferBuffer *textureBuffer = SDL_CreateGPUTransferBuffer(device, &transferInfo);
-        if (!textureBuffer)
-        {
-            SDL_Log("Failed to create texture transfer buffer: %s", SDL_GetError());
-            return;
-        }
-
-        void *textureData = SDL_MapGPUTransferBuffer(device, textureBuffer, false);
-        SDL_memcpy(textureData, pixels, imageSizeInBytes);
-        SDL_UnmapGPUTransferBuffer(device, textureBuffer);
-
-        SDL_GPUTextureCreateInfo textureInfo{};
-        textureInfo.type = SDL_GPU_TEXTURETYPE_2D;
-        textureInfo.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-        textureInfo.width = static_cast<Uint32>(width);
-        textureInfo.height = static_cast<Uint32>(height);
-        textureInfo.layer_count_or_depth = 1;
-        textureInfo.num_levels = 1;
-        textureInfo.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-
-        gpuTexture = SDL_CreateGPUTexture(device, &textureInfo);
-        if (!gpuTexture)
-        {
-            SDL_Log("Failed to create GPU texture: %s", SDL_GetError());
-            SDL_ReleaseGPUTransferBuffer(device, textureBuffer);
-            return;
-        }
-
-        SDL_GPUCommandBuffer *cmdBuffer = SDL_AcquireGPUCommandBuffer(device);
-        SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(cmdBuffer);
-
-        SDL_GPUTextureTransferInfo srcTransfer{};
-        srcTransfer.transfer_buffer = textureBuffer;
-        srcTransfer.offset = 0;
-        srcTransfer.pixels_per_row = static_cast<Uint32>(width);
-        srcTransfer.rows_per_layer = static_cast<Uint32>(height);
-
-        SDL_GPUTextureRegion destRegion{};
-        destRegion.texture = gpuTexture;
-        destRegion.w = static_cast<Uint32>(width);
-        destRegion.h = static_cast<Uint32>(height);
-        destRegion.d = 1;
-
-        SDL_UploadToGPUTexture(copyPass, &srcTransfer, &destRegion, false);
-
-        SDL_EndGPUCopyPass(copyPass);
-        SDL_SubmitGPUCommandBuffer(cmdBuffer);
-
-        SDL_ReleaseGPUTransferBuffer(device, textureBuffer);
     }
 
-    SDL_GPUDevice *owningDevice = nullptr;
+    std::vector<unsigned char> pixels; // RGBA8, row-major, width*height*4 bytes
+    int width = 0;
+    int height = 0;
+    Uint32 id = kNoTexture;
+};
 
-    int channels = 0;
+// Owns every texture in a scene and builds the single GPU texture array the
+// shader samples. Ids are handed out on registration and are exactly the layer
+// index, so there is no separate "register the textures" pass to forget.
+class TextureLibrary
+{
+public:
+    // A 1x1 texture of one colour. Rarely what you want - prefer just setting
+    // the material albedo - but handy for testing UV mapping.
+    Texture *Solid(Color color)
+    {
+        const std::vector<unsigned char> rgba = {
+            ToByte(color.x), ToByte(color.y), ToByte(color.z), 255};
+        return Add(rgba, 1, 1);
+    }
+
+    // Loads an image off disk. Relative paths are tried against the working
+    // directory first, then against the directory the executable lives in, so
+    // it works whether you launch from the repo root or from build/bin.
+    // Returns nullptr (and logs) if the file can't be read - a material with a
+    // null texture simply falls back to its flat albedo.
+    Texture *Load(const char *filepath)
+    {
+        int width = 0;
+        int height = 0;
+        int channels = 0;
+
+        unsigned char *cpuPixels = stbi_load(filepath, &width, &height, &channels, 4);
+
+        if (!cpuPixels)
+        {
+            if (const char *basePath = SDL_GetBasePath())
+            {
+                const std::string fallback = std::string(basePath) + filepath;
+                cpuPixels = stbi_load(fallback.c_str(), &width, &height, &channels, 4);
+            }
+        }
+
+        if (!cpuPixels)
+        {
+            SDL_Log("Failed to load texture '%s': %s", filepath, stbi_failure_reason());
+            return nullptr;
+        }
+
+        std::vector<unsigned char> rgba(
+            cpuPixels,
+            cpuPixels + static_cast<size_t>(width) * height * 4);
+        stbi_image_free(cpuPixels);
+
+        SDL_Log("Loaded texture '%s' (%dx%d) as layer %zu", filepath, width, height, textures.size());
+        return Add(rgba, width, height);
+    }
+
+    size_t Count() const { return textures.size(); }
+
+    // Packs every registered texture into one 2D array texture, resampling each
+    // to the common layer size. Always returns a bindable texture: with no
+    // registered textures you get a single white 1x1 layer, so the shader's
+    // sampler binding is never null.
+    SDL_GPUTexture *BuildGPUArray(SDL_GPUDevice *device) const
+    {
+        const Uint32 layerCount = textures.empty() ? 1u : static_cast<Uint32>(textures.size());
+
+        int layerWidth = 1;
+        int layerHeight = 1;
+        for (const auto &texture : textures)
+        {
+            layerWidth = std::max(layerWidth, texture->Width());
+            layerHeight = std::max(layerHeight, texture->Height());
+        }
+        layerWidth = std::min(layerWidth, kMaxTextureArrayDimension);
+        layerHeight = std::min(layerHeight, kMaxTextureArrayDimension);
+
+        const size_t layerBytes = static_cast<size_t>(layerWidth) * layerHeight * 4;
+        const size_t totalBytes = layerBytes * layerCount;
+
+        SDL_Log(
+            "Texture array: %u layer(s) at %dx%d (%.1f MB)",
+            layerCount,
+            layerWidth,
+            layerHeight,
+            totalBytes / (1024.0 * 1024.0));
+
+        SDL_GPUTextureCreateInfo info{};
+        info.type = SDL_GPU_TEXTURETYPE_2D_ARRAY;
+        info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        info.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        info.width = static_cast<Uint32>(layerWidth);
+        info.height = static_cast<Uint32>(layerHeight);
+        info.layer_count_or_depth = layerCount;
+        info.num_levels = 1;
+
+        SDL_GPUTexture *array = SDL_CreateGPUTexture(device, &info);
+        if (!array)
+        {
+            SDL_Log("Failed to create texture array: %s", SDL_GetError());
+            return nullptr;
+        }
+
+        SDL_GPUTransferBufferCreateInfo transferInfo{};
+        transferInfo.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+        transferInfo.size = static_cast<Uint32>(totalBytes);
+
+        SDL_GPUTransferBuffer *transfer = SDL_CreateGPUTransferBuffer(device, &transferInfo);
+        if (!transfer)
+        {
+            SDL_Log("Failed to create texture array transfer buffer: %s", SDL_GetError());
+            SDL_ReleaseGPUTexture(device, array);
+            return nullptr;
+        }
+
+        unsigned char *staging =
+            static_cast<unsigned char *>(SDL_MapGPUTransferBuffer(device, transfer, false));
+        if (!staging)
+        {
+            SDL_Log("Failed to map texture array transfer buffer: %s", SDL_GetError());
+            SDL_ReleaseGPUTransferBuffer(device, transfer);
+            SDL_ReleaseGPUTexture(device, array);
+            return nullptr;
+        }
+
+        if (textures.empty())
+        {
+            SDL_memset(staging, 0xFF, layerBytes); // opaque white
+        }
+        else
+        {
+            for (size_t i = 0; i < textures.size(); i++)
+            {
+                Resample(*textures[i], staging + i * layerBytes, layerWidth, layerHeight);
+            }
+        }
+
+        SDL_UnmapGPUTransferBuffer(device, transfer);
+
+        SDL_GPUCommandBuffer *commandBuffer = SDL_AcquireGPUCommandBuffer(device);
+        SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(commandBuffer);
+
+        for (Uint32 layer = 0; layer < layerCount; layer++)
+        {
+            SDL_GPUTextureTransferInfo source{};
+            source.transfer_buffer = transfer;
+            source.offset = static_cast<Uint32>(layer * layerBytes);
+            source.pixels_per_row = static_cast<Uint32>(layerWidth);
+            source.rows_per_layer = static_cast<Uint32>(layerHeight);
+
+            SDL_GPUTextureRegion destination{};
+            destination.texture = array;
+            destination.layer = layer;
+            destination.w = static_cast<Uint32>(layerWidth);
+            destination.h = static_cast<Uint32>(layerHeight);
+            destination.d = 1;
+
+            SDL_UploadToGPUTexture(copyPass, &source, &destination, false);
+        }
+
+        SDL_EndGPUCopyPass(copyPass);
+        SDL_SubmitGPUCommandBuffer(commandBuffer);
+        SDL_ReleaseGPUTransferBuffer(device, transfer);
+
+        return array;
+    }
+
+private:
+    Texture *Add(const std::vector<unsigned char> &rgba, int width, int height)
+    {
+        const Uint32 id = static_cast<Uint32>(textures.size());
+        textures.push_back(std::unique_ptr<Texture>(new Texture(id, rgba, width, height)));
+        return textures.back().get();
+    }
+
+    static unsigned char ToByte(float component)
+    {
+        const float scaled = component * 255.0f;
+        return static_cast<unsigned char>(scaled < 0.0f ? 0.0f : (scaled > 255.0f ? 255.0f : scaled));
+    }
+
+    // Nearest-neighbour resample of one texture into its slot in the staging
+    // buffer. Point sampling is fine here: the shader samples the array with a
+    // linear filter anyway, and this only runs once at load.
+    static void Resample(const Texture &texture, unsigned char *destination, int width, int height)
+    {
+        const unsigned char *source = texture.pixels.data();
+        const int sourceWidth = texture.Width();
+        const int sourceHeight = texture.Height();
+
+        for (int y = 0; y < height; y++)
+        {
+            const int sourceY = (sourceHeight == height)
+                                    ? y
+                                    : std::min(sourceHeight - 1, (y * sourceHeight) / height);
+
+            for (int x = 0; x < width; x++)
+            {
+                const int sourceX = (sourceWidth == width)
+                                        ? x
+                                        : std::min(sourceWidth - 1, (x * sourceWidth) / width);
+
+                SDL_memcpy(
+                    destination + (static_cast<size_t>(y) * width + x) * 4,
+                    source + (static_cast<size_t>(sourceY) * sourceWidth + sourceX) * 4,
+                    4);
+            }
+        }
+    }
+
+    std::vector<std::unique_ptr<Texture>> textures;
 };
 
 #endif

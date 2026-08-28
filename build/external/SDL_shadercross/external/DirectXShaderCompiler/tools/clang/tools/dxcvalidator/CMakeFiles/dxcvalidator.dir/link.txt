@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../../lib/libdxcvalidator.a CMakeFiles/dxcvalidator.dir/dxcvalidator.cpp.o
-/usr/bin/ranlib ../../../../lib/libdxcvalidator.a

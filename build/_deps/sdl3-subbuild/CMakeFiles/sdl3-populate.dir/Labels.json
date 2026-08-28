@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/sdl3-populate"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/9ca3663c9f0a232fbf3fc06b1e3f99f0/sdl3-populate.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/2b8c8a4ad95a93ff42add1f86e823f00/sdl3-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-subbuild/CMakeFiles/6689671e249abc81bcd06e431b7f4b80/sdl3-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"sdl3-populate"
+		],
+		"name" : "sdl3-populate"
+	}
+}

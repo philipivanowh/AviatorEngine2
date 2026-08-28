@@ -1,0 +1,196 @@
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3075D3F438AC76B2212D48D9BB8B641E\PNGLIBCONF.C.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/pnglibconf.c -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/gensrc.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3075D3F438AC76B2212D48D9BB8B641E\PNGLIBCONF.OUT.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DINPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/pnglibconf.c -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/pnglibconf.out -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/genout.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3075D3F438AC76B2212D48D9BB8B641E\PNGLIBCONF.H.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/pnglibconf.h -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/gensrc.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\F735ED29FF74EA97B136C739D8842120\SYM.OUT.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DINPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/sym.c -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/sym.out -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/genout.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3075D3F438AC76B2212D48D9BB8B641E\LIBPNG.SYM.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E remove C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/libpng.sym
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/sym.out C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/libpng.sym
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\F735ED29FF74EA97B136C739D8842120\VERS.OUT.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DINPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/vers.c -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/vers.out -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/genout.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3075D3F438AC76B2212D48D9BB8B641E\LIBPNG.VERS.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E remove C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/libpng.vers
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E copy C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/vers.out C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/libpng.vers
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3075D3F438AC76B2212D48D9BB8B641E\PNGPREFIX.H.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/pngprefix.h -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/gensrc.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\F735ED29FF74EA97B136C739D8842120\INTPREFIX.OUT.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DINPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/intprefix.c -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/intprefix.out -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/genout.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\F735ED29FF74EA97B136C739D8842120\PNGLIBCONF.C.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/pnglibconf.c -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/gensrc.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\F735ED29FF74EA97B136C739D8842120\PREFIX.OUT.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DINPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/prefix.c -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/prefix.out -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/genout.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\F735ED29FF74EA97B136C739D8842120\SYMBOLS.OUT.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DINPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/symbols.c -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/symbols.out -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/genout.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\F735ED29FF74EA97B136C739D8842120\SYMBOLS.CHK.RULE
+setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DINPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/symbols.out -DOUTPUT=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/symbols.chk -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/scripts/cmake/genchk.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\A797BE9E3907A2708CE87A96CEDB4739\PNG_GENFILES.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\_DEPS\SDL3_IMAGE-SRC\EXTERNAL\LIBPNG\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2 -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build --check-stamp-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

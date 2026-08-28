@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../libLLVMVectorize.a CMakeFiles/LLVMVectorize.dir/Vectorize.cpp.o
-/usr/bin/ranlib ../../libLLVMVectorize.a

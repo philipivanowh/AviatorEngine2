@@ -1,0 +1,1022 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "bin/MinSizeRel/libwebp.dll"
+		},
+		{
+			"path" : "_deps/sdl3_image-build/external/libwebp-build/MinSizeRel/libwebp.lib"
+		},
+		{
+			"path" : "bin/MinSizeRel/libwebp.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"install",
+			"target_link_libraries",
+			"add_definitions",
+			"target_include_directories"
+		],
+		"files" : 
+		[
+			"build/_deps/sdl3_image-src/external/libwebp/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 393,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 736,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 395,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 399,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 252,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 137,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 141,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 347,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 400,
+				"parent" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	},
+	"compileDependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "sharpyuv::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"backtrace" : 4,
+			"id" : "Threads::Threads::@dc31dadf6d13b6eb72d6"
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"id" : "webpencode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdsp::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "sharpyuv::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webputils::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "webp::@dc31dadf6d13b6eb72d6",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 2,
+				"path" : "lib"
+			},
+			{
+				"backtrace" : 2,
+				"path" : "bin"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "C:/Program Files (x86)/app"
+		}
+	},
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/machine:x64 /INCREMENTAL:NO",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "MinSizeRel\\libsharpyuv.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "shlwapi.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "ole32.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "windowscodecs.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
+				"role" : "libraries"
+			}
+		],
+		"language" : "C"
+	},
+	"linkLibraries" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "sharpyuv::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"backtrace" : 4,
+			"id" : "Threads::Threads::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"backtrace" : 4,
+			"fragment" : "shlwapi"
+		},
+		{
+			"backtrace" : 4,
+			"fragment" : "ole32"
+		},
+		{
+			"backtrace" : 4,
+			"fragment" : "windowscodecs"
+		}
+	],
+	"name" : "webp",
+	"nameOnDisk" : "libwebp.dll",
+	"objectDependencies" : 
+	[
+		{
+			"backtrace" : 1,
+			"id" : "webpdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"backtrace" : 1,
+			"id" : "webpdsp::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"backtrace" : 1,
+			"id" : "webpencode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"backtrace" : 1,
+			"id" : "webputils::@dc31dadf6d13b6eb72d6"
+		}
+	],
+	"orderDependencies" : 
+	[
+		{
+			"id" : "webpencode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdsp::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webputils::@dc31dadf6d13b6eb72d6"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/sdl3_image-build/external/libwebp-build",
+		"source" : "build/_deps/sdl3_image-src/external/libwebp"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Object Libraries",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58,
+				59,
+				60,
+				61,
+				62,
+				63,
+				64,
+				65,
+				66,
+				67,
+				68,
+				69,
+				70,
+				71,
+				72,
+				73,
+				74,
+				75,
+				76,
+				77,
+				78,
+				79,
+				80,
+				81,
+				82,
+				83,
+				84,
+				85,
+				86,
+				87,
+				88,
+				89,
+				90,
+				91,
+				92,
+				93,
+				94,
+				95,
+				96,
+				97,
+				98,
+				99,
+				100,
+				101,
+				102,
+				103,
+				104,
+				105,
+				106,
+				107,
+				108
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/alpha_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/buffer_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/frame_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/idec_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/io_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/quant_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/tree_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/vp8_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/vp8l_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdecode.dir/$(Configuration)/webp_dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/alpha_processing.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/cpu.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec_clip_tables.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/filters.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/rescaler.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/upsampling.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/yuv.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/alpha_processing_sse41.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec_sse41.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_sse41.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/upsampling_sse41.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/yuv_sse41.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/alpha_processing_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/filters_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/rescaler_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/upsampling_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/yuv_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/alpha_processing_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/filters_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/rescaler_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/upsampling_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/yuv_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec_msa.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/filters_msa.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_msa.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/rescaler_msa.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/upsampling_msa.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec_mips32.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/rescaler_mips32.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/yuv_mips32.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/alpha_processing_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/dec_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/filters_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/rescaler_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/upsampling_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/yuv_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/cost.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/ssim.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/cost_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/enc_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_enc_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/ssim_sse2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/enc_sse41.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_enc_sse41.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/cost_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/enc_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_enc_neon.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/enc_msa.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_enc_msa.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/cost_mips32.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/enc_mips32.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_enc_mips32.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/cost_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/enc_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpdsp.dir/$(Configuration)/lossless_enc_mips_dsp_r2.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/alpha_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/analysis_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/backward_references_cost_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/backward_references_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/config_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/cost_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/filter_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/frame_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/histogram_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/iterator_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/near_lossless_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/picture_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/picture_csp_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/picture_psnr_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/picture_rescale_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/picture_tools_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/predictor_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/quant_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/syntax_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/token_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/tree_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/vp8l_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webpencode.dir/$(Configuration)/webp_enc.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/bit_reader_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/color_cache_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/filters_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/huffman_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/quant_levels_dec_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/rescaler_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/random_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/thread_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/bit_writer_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/huffman_encode_utils.obj",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"isGenerated" : true,
+			"path" : "build/_deps/sdl3_image-build/external/libwebp-build/webputils.dir/$(Configuration)/quant_levels_utils.obj",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

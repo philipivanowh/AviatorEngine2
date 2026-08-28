@@ -1,0 +1,13 @@
+prefix=C:/Program Files (x86)/app
+exec_prefix=C:/Program Files (x86)/app
+libdir=C:/Program Files (x86)/app/lib
+sharedlibdir=C:/Program Files (x86)/app/lib
+includedir=C:/Program Files (x86)/app/include
+
+Name: zlib
+Description: zlib compression library
+Version: 1.3.1
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}

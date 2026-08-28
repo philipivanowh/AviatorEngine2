@@ -1,0 +1,257 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ResolveNugetPackages>false</ResolveNugetPackages>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{01B6E8E4-CE86-3583-AC07-A0053BCD0E58}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libwebp/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2 -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build --check-stamp-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libwebp-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-4.2\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\cmake.verify_globs;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\WebPConfig.cmake.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\config.h.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\cpu.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\deps.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\sharpyuv\libsharpyuv.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\demux\libwebpdemux.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebp.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebpdecoder.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\mux\libwebpmux.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libwebp/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2 -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build --check-stamp-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libwebp-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-4.2\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\cmake.verify_globs;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\WebPConfig.cmake.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\config.h.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\cpu.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\deps.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\sharpyuv\libsharpyuv.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\demux\libwebpdemux.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebp.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebpdecoder.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\mux\libwebpmux.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libwebp/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2 -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build --check-stamp-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libwebp-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-4.2\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\cmake.verify_globs;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\WebPConfig.cmake.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\config.h.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\cpu.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\deps.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\sharpyuv\libsharpyuv.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\demux\libwebpdemux.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebp.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebpdecoder.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\mux\libwebpmux.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libwebp/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2 -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build --check-stamp-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libwebp-build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-4.2\Modules\BasicConfigVersion-AnyNewerVersion.cmake.in;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePackageConfigHelpers.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakePushCheckState.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckCSourceCompiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFile.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckIncludeFiles.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CheckLibraryExists.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindOpenGL.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindPackageMessage.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\FindThreads.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\GNUInstallDirs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\WriteBasicConfigVersionFile.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\cmake.verify_globs;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\WebPConfig.cmake.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\config.h.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\cpu.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\cmake\deps.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\sharpyuv\libsharpyuv.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\demux\libwebpdemux.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebp.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\libwebpdecoder.pc.in;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\src\mux\libwebpmux.pc.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\ZERO_CHECK.vcxproj">
+      <Project>{F8CDC1FD-D967-37ED-81C9-8CE369BE6E92}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\exampleutil.vcxproj">
+      <Project>{2E470781-C1B4-3AE5-A136-79B2E62831FE}</Project>
+      <Name>exampleutil</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\imagedec.vcxproj">
+      <Project>{3834F323-D5F0-3B02-A2D8-740DB35B8B42}</Project>
+      <Name>imagedec</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\imageenc.vcxproj">
+      <Project>{3024C71F-A682-36A9-8B6C-E36E4A402BB7}</Project>
+      <Name>imageenc</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\imageioutil.vcxproj">
+      <Project>{670B6183-801E-3FCD-B602-BD9F5216D81D}</Project>
+      <Name>imageioutil</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\libwebpmux.vcxproj">
+      <Project>{B67FA991-CD9A-3BD8-9080-B0AF07BC9CCA}</Project>
+      <Name>libwebpmux</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\sharpyuv.vcxproj">
+      <Project>{10F22B2A-03D6-3A80-8BE4-10E307C51DD5}</Project>
+      <Name>sharpyuv</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webp.vcxproj">
+      <Project>{FDFC1D37-8BEE-3A9D-9FB0-EA0012B55472}</Project>
+      <Name>webp</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpdecode.vcxproj">
+      <Project>{E86537FC-3856-3A86-B542-037C4888E662}</Project>
+      <Name>webpdecode</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpdecoder.vcxproj">
+      <Project>{797E682D-06F7-3992-8A29-6F0EEC20C054}</Project>
+      <Name>webpdecoder</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpdemux.vcxproj">
+      <Project>{25A68F88-29DA-3EDA-8959-9AC1547D25BF}</Project>
+      <Name>webpdemux</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpdsp.vcxproj">
+      <Project>{738522F3-B277-3A03-B533-30DC34905A8F}</Project>
+      <Name>webpdsp</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpdspdecode.vcxproj">
+      <Project>{0A273F18-AED6-37F8-BBE5-8468C8725E97}</Project>
+      <Name>webpdspdecode</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpencode.vcxproj">
+      <Project>{0D5AE940-5F59-3B0B-BE22-47CD4CA208D6}</Project>
+      <Name>webpencode</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webpmux.vcxproj">
+      <Project>{A5341B5A-094C-35A1-A9DD-3F3EA333A9CC}</Project>
+      <Name>webpmux</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webputils.vcxproj">
+      <Project>{71B5757A-E26B-3F30-93D5-D6BDC0ED3545}</Project>
+      <Name>webputils</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libwebp-build\webputilsdecode.vcxproj">
+      <Project>{1B931991-106B-315F-9C7E-0CBC2BC6741D}</Project>
+      <Name>webputilsdecode</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

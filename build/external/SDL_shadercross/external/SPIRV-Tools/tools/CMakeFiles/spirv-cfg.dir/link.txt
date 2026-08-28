@@ -1,1 +1,0 @@
-/usr/bin/clang++ -g -mmacosx-version-min=11.0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/spirv-cfg.dir/cfg/cfg.cpp.o" "CMakeFiles/spirv-cfg.dir/cfg/bin_to_dot.cpp.o" "CMakeFiles/spirv-cfg.dir/io.cpp.o" "CMakeFiles/spirv-cfg.dir/util/flags.cpp.o" -o ../../../../../bin/spirv-cfg  ../source/libSPIRV-Tools.a

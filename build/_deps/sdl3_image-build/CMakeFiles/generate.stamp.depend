@@ -1,0 +1,17 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-4.2/Modules/CMakeDependentOption.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/CMakePackageConfigHelpers.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/CMakeParseArguments.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/CMakePushCheckState.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/CheckCCompilerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/CheckLinkerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/GNUInstallDirs.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/WriteBasicConfigVersionFile.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/CMakeFiles/cmake.verify_globs
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/CMakeLists.txt
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/cmake/GetGitRevisionDescription.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/cmake/PrivateSdlFunctions.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/cmake/sdlcpu.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/cmake/sdlmanpages.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/cmake/sdlplatform.cmake

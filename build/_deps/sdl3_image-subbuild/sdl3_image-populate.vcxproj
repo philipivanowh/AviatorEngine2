@@ -1,0 +1,303 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{78B22366-09B4-355F-9C4D-A1F523EF6F20}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>sdl3_image-populate</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-mkdir.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Creating directories for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/tmp/sdl3_image-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-mkdir</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-download.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Performing download step (git clone) for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/tmp/sdl3_image-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\sdl3_image-populate-gitinfo.txt;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-mkdir;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-download</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-update.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Performing update step for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/tmp/sdl3_image-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\tmp\sdl3_image-populate-gitupdate.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\sdl3_image-populate-update-info.txt;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-download;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-update</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</VerifyInputsAndOutputsExist>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-patch.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">No patch step for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\sdl3_image-populate-patch-info.txt;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-update;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-patch</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</VerifyInputsAndOutputsExist>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-configure.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">No configure step for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\tmp\sdl3_image-populate-cfgcmd.txt;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-patch;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-configure</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-build.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">No build step for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-configure;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-build</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-install.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">No install step for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-build;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-install</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\d1bca2d46c148ec9c2428a3a98ac1d6c\sdl3_image-populate-test.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">No test step for 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-install;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-test</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\14979c899ca2ffe6b758267f229232ce\sdl3_image-populate-complete.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Completed 'sdl3_image-populate'</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/Debug/sdl3_image-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/sdl3_image-populate-prefix/src/sdl3_image-populate-stamp/Debug/sdl3_image-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-install;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-mkdir;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-download;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-update;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-patch;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-configure;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-build;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\src\sdl3_image-populate-stamp\Debug\sdl3_image-populate-test;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\Debug\sdl3_image-populate-complete</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</VerifyInputsAndOutputsExist>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\0bb86957e715269cf857c353a60f06d6\sdl3_image-populate.rule">
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\Debug\sdl3_image-populate-complete;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\sdl3_image-populate</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <VerifyInputsAndOutputsExist Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</VerifyInputsAndOutputsExist>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild --check-stamp-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-4.2\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\PatchInfo.txt.in;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\RepositoryInfo.txt.in;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\UpdateInfo.txt.in;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\cfgcmd.txt.in;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\gitclone.cmake.in;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\gitupdate.cmake.in;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\mkdirs.cmake.in;C:\Program Files\CMake\share\cmake-4.2\Modules\ExternalProject\shared_internal_commands.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-4.2\Modules\Platform\WindowsPaths.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\4.2.1\CMakeSystem.cmake;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\sdl3_image-populate-prefix\tmp\sdl3_image-populate-mkdirs.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\CMakeFiles\sdl3_image-populate">
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-subbuild\ZERO_CHECK.vcxproj">
+      <Project>{DB1E20E6-4EB0-3EE3-A972-69EBA5D17C53}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

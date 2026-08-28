@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../libLLVMDxilPdbInfo.a CMakeFiles/LLVMDxilPdbInfo.dir/DxilPdbInfoWriter.cpp.o
-/usr/bin/ranlib ../libLLVMDxilPdbInfo.a

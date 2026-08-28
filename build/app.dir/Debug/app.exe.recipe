@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\x64\Debug\ZERO_CHECK</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\bin\SDL3.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\bin\libwebp.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\bin\libwebpmux.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\libpng-build\x64\Debug\png_genfiles</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\bin\libpng16-16.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\bin\libwebpdemux.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\bin\SDL3_image.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\bin\app.exe</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles />
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

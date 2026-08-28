@@ -1,1 +1,0 @@
-/usr/bin/clang++ -g -mmacosx-version-min=11.0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/spirv-opt.dir/util/flags.cpp.o" "CMakeFiles/spirv-opt.dir/opt/opt.cpp.o" "CMakeFiles/spirv-opt.dir/util/cli_consumer.cpp.o" "CMakeFiles/spirv-opt.dir/io.cpp.o" -o ../../../../../bin/spirv-opt  ../source/opt/libSPIRV-Tools-opt.a ../source/libSPIRV-Tools.a

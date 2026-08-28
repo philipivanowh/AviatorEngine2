@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\64991268fb6522a30474e0b1c6b73c93\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{6AAE73DD-EF7E-3BF2-9BC2-60BC6AC7A4D1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,65 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"build/_deps/sdl3_image-src/external/libpng/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "png-fix-itxt::@d49830798a9708976eb0"
+		},
+		{
+			"id" : "png_shared::@d49830798a9708976eb0"
+		},
+		{
+			"id" : "pngfix::@d49830798a9708976eb0"
+		},
+		{
+			"id" : "png_static::@d49830798a9708976eb0"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "ALL_BUILD::@d49830798a9708976eb0",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"orderDependencies" : 
+	[
+		{
+			"id" : "png-fix-itxt::@d49830798a9708976eb0"
+		},
+		{
+			"id" : "png_shared::@d49830798a9708976eb0"
+		},
+		{
+			"id" : "pngfix::@d49830798a9708976eb0"
+		},
+		{
+			"id" : "png_static::@d49830798a9708976eb0"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/sdl3_image-build/external/libpng-build",
+		"source" : "build/_deps/sdl3_image-src/external/libpng"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

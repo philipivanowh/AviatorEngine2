@@ -1,0 +1,14 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-4.2/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/CheckLibraryExists.cmake
+C:/Program Files/CMake/share/cmake-4.2/Modules/GNUInstallDirs.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/CMakeFiles/cmake.verify_globs
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/CMakeLists.txt
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/checksym.awk
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/cmake/PNGCheckLibconf.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/cmake/PNGGenConfig.cmake
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/cmake/genchk.cmake.in
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/cmake/genout.cmake.in
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/cmake/gensrc.cmake.in
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/dfn.awk
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-src/external/libpng/scripts/options.awk

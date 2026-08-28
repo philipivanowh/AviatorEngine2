@@ -1,1 +1,0 @@
-/usr/bin/clang++ -g -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/app.dir/main.cpp.o -o bin/app -F/Users/lansmachine/Documents/Github/AviatorEngine2/external  -Wl,-rpath,/Users/lansmachine/Documents/Github/AviatorEngine2/external -framework SDL3 -framework SDL3_image

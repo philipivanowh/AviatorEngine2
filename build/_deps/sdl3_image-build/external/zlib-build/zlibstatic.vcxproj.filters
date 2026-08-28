@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\adler32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\compress.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\crc32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\deflate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\gzclose.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\gzlib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\gzread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\gzwrite.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\inflate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\infback.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\inftrees.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\inffast.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\trees.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\uncompr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\zutil.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\external\zlib-build\zconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\zlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\crc32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\deflate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\gzguts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\inffast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\inffixed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\inflate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\inftrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\trees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\zutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\zlib\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{6D6B50AD-A9CB-30BE-8E11-BDAC08D08E98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E0556D16-0BAA-3DAB-9915-B62B2525DFDF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

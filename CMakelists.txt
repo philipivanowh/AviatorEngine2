@@ -1,9 +1,14 @@
-cmake_minimum_required(VERSION 3.10)
-project(app)
+cmake_minimum_required(VERSION 3.21)
+
+project(app LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum OS X deployment version")
+
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum OS X deployment version")
+endif()
+
 set(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINARY_DIR})
@@ -11,35 +16,68 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${BINARY_DIR})
-make_directory(${BINARY_DIR})
 
-find_library(SDL3_FRAMEWORK
-    SDL3
-    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/external"
-    NO_DEFAULT_PATH
-    REQUIRED
-)
-find_library(SDL3_IMAGE_FRAMEWORK
-    SDL3_image
-    PATHS "${CMAKE_CURRENT_SOURCE_DIR}/external"
-    NO_DEFAULT_PATH
-    REQUIRED
-)
+include(FetchContent)
 
-message(STATUS "SDL3 Framework: ${SDL3_FRAMEWORK}")
-message(STATUS "SDL3_image Framework: ${SDL3_IMAGE_FRAMEWORK}")
+set(SDL_TESTS OFF CACHE BOOL "" FORCE)
+set(SDL_TEST_EXTRA OFF CACHE BOOL "" FORCE)
+set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_INSTALL OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_AVIF   OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_JXL    OFF CACHE BOOL "" FORCE)  # JPEG-XL, another heavy vendored dep
+set(SDLIMAGE_WEBP   ON  CACHE BOOL "" FORCE)
+set(SDLIMAGE_PNG    ON  CACHE BOOL "" FORCE)
+set(SDLIMAGE_JPG    ON  CACHE BOOL "" FORCE)
+set(SDLIMAGE_TIF    OFF CACHE BOOL "" FORCE)  # less common, avoids libtiff dep
+
+# Pick ONE library type
+set(SDL_SHARED ON CACHE BOOL "" FORCE)
+set(SDL_STATIC OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG        release-3.4.14   # pin to whatever current release you want
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(SDL3)
+
+FetchContent_Declare(SDL3_image
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+    GIT_TAG        release-3.4.4    # pin this too
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(SDL3_image)
 
 add_executable(${PROJECT_NAME}
     main.cpp
 )
 
-target_include_directories(
-    ${PROJECT_NAME} PUBLIC
-    ${SDL3_FRAMEWORK}/Headers
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
+
+# The shaders are loaded at runtime by relative path, so they have to sit next
+# to the executable - otherwise launching from anywhere but the repo root (the
+# VS debugger, a double-click, a packaged build) fails at pipeline creation
+# with "Failed to load shader". Assets are staged the same way.
+set(RUNTIME_ASSETS
+    # ${CMAKE_CURRENT_SOURCE_DIR}/path_trace.comp.dxil
+    ${CMAKE_CURRENT_SOURCE_DIR}/ray_trace.comp.dxil
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${SDL3_FRAMEWORK}
-    ${SDL3_IMAGE_FRAMEWORK}
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${RUNTIME_ASSETS}
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/brick
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/brick
+    COMMENT "Staging shaders and assets next to the executable"
 )
 
+if(WIN32)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+        COMMAND_EXPAND_LISTS
+    )
+endif()

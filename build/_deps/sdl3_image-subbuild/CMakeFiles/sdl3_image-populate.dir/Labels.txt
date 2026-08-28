@@ -1,0 +1,14 @@
+# Target labels
+ sdl3_image-populate
+# Source files and their labels
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/sdl3_image-populate
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/0bb86957e715269cf857c353a60f06d6/sdl3_image-populate.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/14979c899ca2ffe6b758267f229232ce/sdl3_image-populate-complete.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-build.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-configure.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-download.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-install.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-mkdir.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-patch.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-test.rule
+C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-subbuild/CMakeFiles/d1bca2d46c148ec9c2428a3a98ac1d6c/sdl3_image-populate-update.rule

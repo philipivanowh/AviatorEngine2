@@ -1,0 +1,41 @@
+{
+	"abstract" : true,
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library"
+		],
+		"files" : 
+		[
+			"build/_deps/sdl3-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 3920,
+				"parent" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	},
+	"id" : "SDL3_Headers::@405c074760d2f6728126",
+	"name" : "SDL3_Headers",
+	"paths" : 
+	{
+		"build" : "_deps/sdl3-build",
+		"source" : "build/_deps/sdl3-src"
+	},
+	"sources" : [],
+	"type" : "INTERFACE_LIBRARY"
+}

@@ -1,1 +1,0 @@
-/usr/bin/clang++ -g -mmacosx-version-min=11.0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names "CMakeFiles/spirv-tools-cpp-example.dir/main.cpp.o" -o ../../../../../../bin/spirv-tools-cpp-example  ../../source/opt/libSPIRV-Tools-opt.a ../../source/libSPIRV-Tools.a

@@ -36,24 +36,25 @@ public:
     int right;
     int count;
 
-    BVH_node(AABB bbox, int left, int right, int count) : bbox(bbox), left(left), right(right), count(count){
-
+    BVH_node(AABB bbox, int left, int right, int count) : bbox(bbox), left(left), right(right), count(count)
+    {
     }
 
     BVHNode_GPU CreateBVHNodeGPU()
     {
-        return BVHNode_GPU{
-            .min_x = this->bbox.min_x,
-            .min_y = this->bbox.min_y,
-            .min_z = this->bbox.min_z,
+        BVHNode_GPU bvh_node = {};
+        bvh_node.min_x = this->bbox.min_x;
+        bvh_node.min_y = this->bbox.min_y;
+        bvh_node.min_z = this->bbox.min_z;
 
-            .min_x = this->bbox.max_x,
-            .min_y = this->bbox.max_y,
-            .min_x = this->bbox.max_z,
+        bvh_node.max_x = this->bbox.max_x;
+        bvh_node.max_y = this->bbox.max_y;
+        bvh_node.max_z = this->bbox.max_z;
 
-            .left = this->left,
-            .right = this->right,
-            .count = this->count};
+        bvh_node.left = this->left;
+        bvh_node.right = this->right;
+        bvh_node.count = this->count;
+        return bvh_node;
     }
 };
 
@@ -74,8 +75,10 @@ namespace detail
             box = Surround(box, bounds[indices[i]]);
         }
 
+        // Reserve this node before descending so its index remains stable
+        // while recursive calls add its children.
         const int nodeIndex = static_cast<int>(outNodes.size());
-        //outNodes.push_back(BVH_node);
+        outNodes.push_back(nullptr);
 
         const int count = end - start;
         if (count <= BVH_LEAF_SIZE)
@@ -85,7 +88,7 @@ namespace detail
             {
                 outObjects.push_back(objects[indices[i]].get());
             }
-            outNodes[nodeIndex] = new BVH_node(box,first,-1,count);
+            outNodes[nodeIndex] = new BVH_node(box, first, -1, count);
 
             return nodeIndex;
         }
@@ -104,9 +107,8 @@ namespace detail
         const int left = BuildRecursive(indices, start, mid, objects, bounds, outNodes, outObjects);
         const int right = BuildRecursive(indices, mid, end, objects, bounds, outNodes, outObjects);
 
+        outNodes[nodeIndex] = new BVH_node(box, left, right, 0);
 
-        outNodes[nodeIndex] = new BVH_node(box,left,right,0);
-        
         return nodeIndex;
     }
 }
@@ -116,6 +118,10 @@ inline void BuildBVH(
     std::vector<BVH_node *> &outNodes,
     std::vector<Object *> &outObjects)
 {
+    for (BVH_node *node : outNodes)
+    {
+        delete node;
+    }
     outNodes.clear();
     outObjects.clear();
 
@@ -139,4 +145,4 @@ inline void BuildBVH(
     detail::BuildRecursive(indices, 0, static_cast<int>(indices.size()), objects, bounds, outNodes, outObjects);
 }
 
-#endif BVH_H
+#endif // BVH_H

@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../libLLVMDxilDia.a CMakeFiles/LLVMDxilDia.dir/DxcPixLiveVariables_FragmentIterator.cpp.o
-/usr/bin/ranlib ../libLLVMDxilDia.a

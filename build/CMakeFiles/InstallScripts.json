@@ -1,7 +1,12 @@
 {
 	"InstallScripts" : 
 	[
-		"/Users/lansmachine/Documents/Github/AviatorEngine2/build/cmake_install.cmake"
+		"C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/cmake_install.cmake",
+		"C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-build/cmake_install.cmake",
+		"C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/cmake_install.cmake",
+		"C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/zlib-build/cmake_install.cmake",
+		"C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libpng-build/cmake_install.cmake",
+		"C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3_image-build/external/libwebp-build/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../libLLVMDxilHash.a CMakeFiles/LLVMDxilHash.dir/DxilHash.cpp.o
-/usr/bin/ranlib ../libLLVMDxilHash.a

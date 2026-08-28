@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../libLLVMPassPrinters.a CMakeFiles/LLVMPassPrinters.dir/PassPrinters.cpp.o
-/usr/bin/ranlib ../libLLVMPassPrinters.a

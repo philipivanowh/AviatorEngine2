@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\examples\example_util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\examples\example_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\examples\stopwatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\external\libwebp\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{6D6B50AD-A9CB-30BE-8E11-BDAC08D08E98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{E0556D16-0BAA-3DAB-9915-B62B2525DFDF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
