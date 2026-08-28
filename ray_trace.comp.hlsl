@@ -756,19 +756,33 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
         shadowRay.Direction = shadowRayDir;
         shadowRay.time = originalRay.GetTime();
 
-        // 5. Trace the shadow ray against the BVH to check for occluders
-        // (Assuming you have a function like TraceShadowRay or standard Trace that returns a Hit)
+        // 5. Trace the shadow ray against the BVH to check for occluders.
+        // Glass is treated as non-occluding here rather than a solid
+        // blocker - without this, dielectric objects cast hard, fully
+        // opaque black shadows exactly like a wall would, instead of
+        // letting light pass through (no caustics/tinting in this simple
+        // model, but at least no false hard shadow).
         Hit shadowHit;
         bool occluded = false;
-        
-        // PSEUDO-TRAVERSAL CODE: Replace this with your actual BVH/Object traversal function
-        if (TraverseBVH(shadowRay,0.001f, shadowHit))
+        Ray currentShadowRay = shadowRay;
+
+        for (int shadowBounce = 0; shadowBounce < 4; shadowBounce++)
         {
-            // If the closest thing we hit is NOT the light source itself, we are in shadow
-            if (shadowHit.Object.ColorType != DIFFUSE_LIGHT) // Or match via object instances
+            if (!TraverseBVH(currentShadowRay, 0.001f, shadowHit))
             {
-                occluded = true;
+                break; // clear path to the light
             }
+            if (shadowHit.Object.ColorType == DIFFUSE_LIGHT)
+            {
+                break; // hit the light itself - not occluded
+            }
+            if (shadowHit.Object.ColorType != DIELECTRIC)
+            {
+                occluded = true; // a real (opaque) blocker
+                break;
+            }
+            // Glass: step the shadow ray through it and keep going.
+            currentShadowRay.Origin = shadowHit.Position + (currentShadowRay.Direction * 0.001f);
         }
 
         // 6. If the path to the light is clear, add its contribution
@@ -827,19 +841,28 @@ float3 ColorRay(Ray ray)
         }
 
         // --- NEXT EVENT ESTIMATION ---
-        // Calculate light received directly from our explicit light array.
+        // Only diffuse surfaces get shaded this way. Specular materials
+        // (metal, glass) get their lighting entirely from whatever their
+        // reflection/refraction ray eventually hits - applying this flat
+        // Lambertian formula to them as well was painting a diffuse-looking
+        // lit patch straight onto mirrors and glass on top of their actual
+        // reflection/refraction, which is what was making dielectric
+        // lighting look wrong even though the bending itself was fine.
         // Clamped to suppress fireflies (rare, extremely bright samples from
         // near-zero-distance shadow rays) - those are what make a single
         // low-sample frame look broken/spotty instead of just softly noisy
         // while it accumulates.
-        float3 directLight = CalculateDirectLight(hit, ray);
-        const float maxContribution = 8.0f;
-        float directLuma = max(directLight.x, max(directLight.y, directLight.z));
-        if (directLuma > maxContribution)
+        if (hit.Object.ColorType == LAMBERTIAN)
         {
-            directLight *= maxContribution / directLuma;
+            float3 directLight = CalculateDirectLight(hit, ray);
+            const float maxContribution = 8.0f;
+            float directLuma = max(directLight.x, max(directLight.y, directLight.z));
+            if (directLuma > maxContribution)
+            {
+                directLight *= maxContribution / directLuma;
+            }
+            accumulatedColor += throughput * directLight;
         }
-        accumulatedColor += throughput * directLight;
 
         // --- INDIRECT LIGHTING (Standard Path Tracing Bounce) ---
         // Generate a new random bounce direction based on material (e.g. Lambertian)
