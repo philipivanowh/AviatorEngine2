@@ -769,7 +769,7 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
         for (int shadowBounce = 0; shadowBounce < 4; shadowBounce++)
         {
             if (!TraverseBVH(currentShadowRay, 0.001f, shadowHit))
-            {
+        {
                 break; // clear path to the light
             }
             if (shadowHit.Object.ColorType == DIFFUSE_LIGHT)
@@ -854,14 +854,14 @@ float3 ColorRay(Ray ray)
         // while it accumulates.
         if (hit.Object.ColorType == LAMBERTIAN)
         {
-            float3 directLight = CalculateDirectLight(hit, ray);
+        float3 directLight = CalculateDirectLight(hit, ray);
             const float maxContribution = 8.0f;
             float directLuma = max(directLight.x, max(directLight.y, directLight.z));
             if (directLuma > maxContribution)
             {
                 directLight *= maxContribution / directLuma;
             }
-            accumulatedColor += throughput * directLight;
+        accumulatedColor += throughput * directLight;
         }
 
         // --- INDIRECT LIGHTING (Standard Path Tracing Bounce) ---
@@ -952,8 +952,8 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     // for them all in a single frame.
     if (Batch == 0)
     {
-        image[id] = float4(color, 1.0f);
-    }
+    image[id] = float4(color, 1.0f);
+}
     else
     {
         const float3 previous = image[id].rgb;
