@@ -1,4 +1,5 @@
 ./build
+.vs/
 path_trace.comp.dxil
 path_trace.comp.spv
 ray_trace.comp.spv

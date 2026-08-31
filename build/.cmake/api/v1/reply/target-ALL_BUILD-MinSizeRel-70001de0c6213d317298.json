@@ -1,0 +1,47 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"build/_deps/sdl3_image-src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "SDL3_image-shared::@80cdc087d69ec7f1fccf"
+		}
+	],
+	"id" : "ALL_BUILD::@80cdc087d69ec7f1fccf",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"orderDependencies" : 
+	[
+		{
+			"id" : "SDL3_image-shared::@80cdc087d69ec7f1fccf"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/sdl3_image-build",
+		"source" : "build/_deps/sdl3_image-src"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}
