@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\3cd2214ab21727b22b2f4cc54f6777a7\path_trace.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\3cd2214ab21727b22b2f4cc54f6777a7\ray_trace.comp.hybrid.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\3cd2214ab21727b22b2f4cc54f6777a7\ray_trace.comp.spv.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\6012b94f52ffd5405e5dbdae6eb98066\shaders.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\CMakeFiles\shaders" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{6AAE73DD-EF7E-3BF2-9BC2-60BC6AC7A4D1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

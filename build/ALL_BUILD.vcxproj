@@ -194,6 +194,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{99F17542-5633-33BD-AE54-C880F55AF336}</Project>
       <Name>app</Name>
     </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\shaders.vcxproj">
+      <Project>{336C7194-85D7-3475-B5A7-44740294AFB7}</Project>
+      <Name>shaders</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

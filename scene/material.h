@@ -3,8 +3,8 @@
 
 #include <SDL3/SDL.h>
 
-#include "texture.h"
-#include "vec3.h"
+#include "scene/texture.h"
+#include "math/vec3.h"
 
 // Uploaded verbatim as Object_GPU::colorType, so these values must stay in
 // lockstep with the #defines at the top of shader.comp.hlsl.

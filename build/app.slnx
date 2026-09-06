@@ -14,6 +14,7 @@
 		<BuildDependency Project="_deps/sdl3-build/SDL_uclibc.vcxproj"/>
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="app.vcxproj"/>
+		<BuildDependency Project="shaders.vcxproj"/>
 	</Project>
 	<Project Path="INSTALL.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2e32294e-0534-3207-bb55-82fc7fad64d7">
 		<BuildDependency Project="ALL_BUILD.vcxproj"/>
@@ -46,6 +47,7 @@
 		<BuildDependency Project="_deps/sdl3-build/SDL3-shared.vcxproj"/>
 		<BuildDependency Project="_deps/sdl3_image-build/SDL3_image-shared.vcxproj"/>
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<BuildDependency Project="shaders.vcxproj"/>
 	</Project>
 	<Project Path="_deps/sdl3_image-build/external/libwebp-build/libwebpmux.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b67fa991-cd9a-3bd8-9080-b0af07bc9cca">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
@@ -58,6 +60,9 @@
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="_deps/sdl3_image-build/external/libpng-build/png_genfiles.vcxproj"/>
 		<BuildDependency Project="_deps/sdl3_image-build/external/zlib-build/zlibstatic.vcxproj"/>
+	</Project>
+	<Project Path="shaders.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="336c7194-85d7-3475-b5a7-44740294afb7">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 	</Project>
 	<Project Path="_deps/sdl3_image-build/external/libwebp-build/sharpyuv.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="10f22b2a-03d6-3a80-8be4-10e307c51dd5">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>

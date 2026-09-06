@@ -138,7 +138,7 @@ StructuredBuffer<Object> objects : register(t1, space0);
 StructuredBuffer<BVHNode> bvh : register(t2, space0);
 StructuredBuffer<uint> lightIDs : register(t3,space0);
 
-[[vk::image_format("rgba32f")]]
+[[vk::image_format("rgba16f")]]
 RWTexture2D<float4> image : register(u0, space1);
 
 static uint seed;
@@ -727,6 +727,81 @@ Object GetLight(uint lightIndex)
 }
 
 
+// Picks a point on a light's surface and reports the solid angle it subtends
+// from `from`. The solid angle is what makes this scale-invariant: a light
+// twice as far away covers a quarter of the sky, and a light twice as wide
+// covers four times as much, so brightness depends on how big the light *looks*
+// rather than on raw distance.
+//
+// This replaces a plain 1/d^2 point-light falloff, which ignored the light's
+// size entirely. That worked by accident in scenes a few units across and went
+// black in scenes hundreds of units across: the 300x265 ceiling light in the
+// feature-test scene was being treated as a pinpoint ~300 units away, so its
+// contribution came out around 1e-5.
+void SampleLight(const in Object light, const in float3 from,
+                 out float3 point_on_light, out float solidAngle)
+{
+    point_on_light = light.Position;
+    solidAngle = 0.0f;
+
+    if (light.ShapeType == QuadShapeType)
+    {
+        // Uniform over the parallelogram. Position is the corner, u and v the
+        // full edge vectors.
+        point_on_light = light.Position
+                       + Random() * light.vector_u
+                       + Random() * light.vector_v;
+
+        const float3 cross_uv = cross(light.vector_u, light.vector_v);
+        const float area = length(cross_uv);
+        const float3 lightNormal = cross_uv / max(area, 1e-8f);
+
+        float3 toSurface = from - point_on_light;
+        const float d2 = dot(toSurface, toSurface);
+        toSurface = normalize(toSurface);
+
+        // Both faces of a quad emit, so the sign of the normal does not matter.
+        const float cosLight = abs(dot(lightNormal, toSurface));
+
+        // Area -> solid angle. The d2 here is what cancels the 1/d^2 in the
+        // geometry term at the call site, leaving the light's area behind.
+        solidAngle = (cosLight * area) / max(d2, 1e-8f);
+        return;
+    }
+
+    if (light.ShapeType == SphereShapeType)
+    {
+        // The cone the sphere subtends. Sampling the visible cap uniformly
+        // would be better; the centre plus the exact cone solid angle is close
+        // enough while the sphere is not filling the frame.
+        const float3 toLight = light.Position - from;
+        const float d2 = max(dot(toLight, toLight), 1e-8f);
+        const float r2 = light.Radius * light.Radius;
+
+        point_on_light = light.Position;
+
+        if (d2 <= r2)
+        {
+            // Inside the light: it covers the whole sphere of directions.
+            solidAngle = 4.0f * 3.14159265f;
+            return;
+        }
+
+        const float cosThetaMax = sqrt(max(0.0f, 1.0f - r2 / d2));
+        solidAngle = 2.0f * 3.14159265f * (1.0f - cosThetaMax);
+        return;
+    }
+
+    // Box lights are not sampled analytically; fall back to the centre with a
+    // crude projected-area estimate so they are not silently black.
+    const float3 toLight = light.Position - from;
+    const float d2 = max(dot(toLight, toLight), 1e-8f);
+    const float area = 4.0f * (light.Half_extends.x * light.Half_extends.y +
+                               light.Half_extends.y * light.Half_extends.z +
+                               light.Half_extends.z * light.Half_extends.x) / 6.0f;
+    solidAngle = area / d2;
+}
+
 // Main Next Event Estimation (Direct Light) Calculation
 float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
 {
@@ -739,12 +814,19 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
     for (uint i = 0; i < NumLights; i++)
     {
         Object lightSource = GetLight(i);
-        float3 lightPos = lightSource.Position;
+
+        // 1. Pick a point on the light and measure how much of the sky it
+        // covers from here.
+        float3 lightPos;
+        float solidAngle;
+        SampleLight(lightSource, surfaceHit.Position, lightPos, solidAngle);
+        if (solidAngle <= 0.0f) continue;
 
         // 2. Calculate vector from the surface hit point to the light source
         float3 shadowRayDir = lightPos - surfaceHit.Position;
         float distanceToLight = length(shadowRayDir);
-        shadowRayDir = normalize(shadowRayDir); // Normalize for the ray direction
+        if (distanceToLight <= 1e-6f) continue;
+        shadowRayDir /= distanceToLight; // Normalize for the ray direction
 
         // 3. Early Out: If the light is behind the surface normal, skip it
         float cosTheta = dot(surfaceHit.Normal, shadowRayDir);
@@ -785,16 +867,18 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
             currentShadowRay.Origin = shadowHit.Position + (currentShadowRay.Direction * 0.001f);
         }
 
-        // 6. If the path to the light is clear, add its contribution
+        // 6. If the path to the light is clear, add its contribution.
         if (!occluded)
         {
-            // Simple Lambertian direct lighting calculation:
-            // Albedo * LightEmission * Cosine Falloff / Distance Squared (attenuation)
-            float3 lightContribution = SurfaceAlbedo(surfaceHit) * (lightSource.Emission * lightSource.Albedo);
-            
-            // Apply geometric configuration (Lambert's Cosine Law and Inverse Square Law)
-            float attenuation = 1.0f / (distanceToLight * distanceToLight);
-            directLighting += lightContribution * cosTheta * attenuation;
+            // Lambertian BRDF (albedo / pi) times the light's radiance, times
+            // the cosine at the surface, times the solid angle the light covers.
+            // The 1/d^2 lives inside solidAngle, paired with the light's area -
+            // that pairing is the whole point, and dropping the area term is
+            // what made large lights in large scenes render black.
+            const float3 radiance = lightSource.Emission * lightSource.Albedo;
+            const float3 brdf = SurfaceAlbedo(surfaceHit) / 3.14159265f;
+
+            directLighting += brdf * radiance * cosTheta * solidAngle;
         }
     }
 
@@ -871,12 +955,26 @@ float3 ColorRay(Ray ray)
             break;
         }
         
-        // Update the ray for the next bounce loop execution
-        ray.Origin = hit.Position + (hit.Normal * 0.001f);
+        // Update the ray for the next bounce loop execution.
+        //
+        // The offset has to follow the direction the ray is actually leaving
+        // in, not the surface normal. hit.Normal always faces back along the
+        // incoming ray, so for a reflection they agree - but a *refracted* ray
+        // travels into the surface, and offsetting along +Normal put its origin
+        // on the wrong side of the boundary. The ray then immediately re-hit
+        // the same surface from outside and was treated as entering the glass a
+        // second time, which flips the IOR ratio and destroys the image a lens
+        // is supposed to form. Grazing angles made it worse, because the
+        // distance back to the boundary grows as 1/cos.
         ray.Direction = normalize(scatterDir);
+        const float offsetSign = (dot(ray.Direction, hit.Normal) < 0.0f) ? -1.0f : 1.0f;
+        ray.Origin = hit.Position + hit.Normal * (0.001f * offsetSign);
         
         // Apply surface albedo attenuation
-        throughput *= hit.Object.Albedo;
+        if (hit.Object.ColorType != DIELECTRIC)
+        {
+            throughput *= hit.Object.Albedo;
+        }
 
         // Russian roulette: with diffuse indirect bounces back in play,
         // start culling low-contribution paths right away instead of

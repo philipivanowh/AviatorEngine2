@@ -11,13 +11,13 @@
 #define SPACE_KEY 44
 #define LCTRL_KEY 224
 
-#include "common.h"
+#include "core/common.h"
 
 class Camera
 {
 public:
-    point3 position;
-    point3 target{0.0f, 0.0f, 0.0f};
+    Point3 position;
+    Point3 target{0.0f, 0.0f, 0.0f};
     float yaw;   // radians, rotation around world Y
     float pitch; // radians, clamped to +-PITCH_LIMIT
     float focus_dist;

@@ -1,1 +1,4 @@
 C:\Users\hahoa\Documents\GitHub\AviatorEngine2\main.cpp;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\app.dir\Debug\main.obj
+C:\Users\hahoa\Documents\GitHub\AviatorEngine2\renderer\renderer.cpp;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\app.dir\Debug\renderer.obj
+C:\Users\hahoa\Documents\GitHub\AviatorEngine2\scene\scene_builders.cpp;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\app.dir\Debug\scene_builders.obj
+C:\Users\hahoa\Documents\GitHub\AviatorEngine2\scene\stb_image_impl.cpp;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\app.dir\Debug\stb_image_impl.obj

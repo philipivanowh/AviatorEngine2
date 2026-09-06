@@ -1,0 +1,6 @@
+Backend: vulkan
+Loading compute shader: ray_trace.comp.spv (51172 bytes)
+Loaded texture 'brick/textures/red_brick_diff_4k.jpg' (4096x4096) as layer 0
+Scene: 1407 objects, 1 texture(s)
+Texture array: 1 layer(s) at 2048x2048 (16.0 MB)
+BVH: 1023 nodes, 1407 ordered objects

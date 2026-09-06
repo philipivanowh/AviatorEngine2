@@ -4,6 +4,15 @@
     <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\renderer\renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\scene\scene_builders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\scene\stb_image_impl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\CMakeLists.txt" />

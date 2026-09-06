@@ -6,15 +6,25 @@
 #include <numeric>
 #include <vector>
 
-#include "aabb.h"
+#include <entt/entt.hpp>
+
+#include "scene/aabb.h"
 
 #define BVH_LEAF_SIZE 4
 
-#include "object.h"
+// The BVH knows nothing about shapes any more. It is handed a flat list of
+// entities and their world-space bounds, and it hands back a reordered entity
+// list plus the node tree over it. That removes the pointer chase the old
+// version did through unique_ptr<Object> to call a virtual Bounds(), and means
+// adding a shape type never touches this file.
+//
+// Bounds are passed in rather than computed here because the caller already
+// walks the registry to gather them (see GatherRenderables in shapes.h), and
+// doing it in one pass keeps the component data in cache.
 
-// Mirrors BVHNode in shader_comp.hlsl byte-for-byte. Two float3s (Min,
-// Max) each need a trailing pad float for the same 16-byte-boundary
-// reason as Sphere::pad0.
+// Mirrors BVHNode in path_trace.comp.hlsl byte-for-byte. Two float3s (Min,
+// Max) each need a trailing pad float for the same 16-byte-boundary reason as
+// Object_GPU::pad0.
 struct BVHNode_GPU
 {
     float min_x, min_y, min_z;
@@ -64,10 +74,10 @@ namespace detail
         std::vector<int> &indices,
         int start,
         int end,
-        const std::vector<std::unique_ptr<Object>> &objects,
+        const std::vector<entt::entity> &entities,
         const std::vector<AABB> &bounds,
         std::vector<BVH_node *> &outNodes,
-        std::vector<Object *> &outObjects)
+        std::vector<entt::entity> &outEntities)
     {
         AABB box = AABB::Empty();
         for (int i = start; i < end; i++)
@@ -83,10 +93,10 @@ namespace detail
         const int count = end - start;
         if (count <= BVH_LEAF_SIZE)
         {
-            const int first = static_cast<int>(outObjects.size());
+            const int first = static_cast<int>(outEntities.size());
             for (int i = start; i < end; i++)
             {
-                outObjects.push_back(objects[indices[i]].get());
+                outEntities.push_back(entities[indices[i]]);
             }
             outNodes[nodeIndex] = new BVH_node(box, first, -1, count);
 
@@ -104,8 +114,8 @@ namespace detail
                 return bounds[a].Centroid(axis) < bounds[b].Centroid(axis);
             });
 
-        const int left = BuildRecursive(indices, start, mid, objects, bounds, outNodes, outObjects);
-        const int right = BuildRecursive(indices, mid, end, objects, bounds, outNodes, outObjects);
+        const int left = BuildRecursive(indices, start, mid, entities, bounds, outNodes, outEntities);
+        const int right = BuildRecursive(indices, mid, end, entities, bounds, outNodes, outEntities);
 
         outNodes[nodeIndex] = new BVH_node(box, left, right, 0);
 
@@ -113,36 +123,39 @@ namespace detail
     }
 }
 
+// `entities` and `bounds` are parallel arrays - bounds[i] is the world-space
+// AABB of entities[i]. GatherRenderables() produces both.
+//
+// outEntities comes back in leaf order, which is the order they must be
+// uploaded to the GPU in: BVH leaves address the object buffer by index, so
+// the shader's `objects[i]` has to be the same object this build put at i.
 inline void BuildBVH(
-    const std::vector<std::unique_ptr<Object>> &objects,
+    const std::vector<entt::entity> &entities,
+    const std::vector<AABB> &bounds,
     std::vector<BVH_node *> &outNodes,
-    std::vector<Object *> &outObjects)
+    std::vector<entt::entity> &outEntities)
 {
+    SDL_assert(entities.size() == bounds.size());
+
     for (BVH_node *node : outNodes)
     {
         delete node;
     }
     outNodes.clear();
-    outObjects.clear();
+    outEntities.clear();
 
-    if (objects.empty())
+    if (entities.empty())
     {
         return;
     }
 
-    outNodes.reserve(objects.size() * 2);
-    outObjects.reserve(objects.size());
+    outNodes.reserve(entities.size() * 2);
+    outEntities.reserve(entities.size());
 
-    std::vector<AABB> bounds(objects.size());
-    for (size_t i = 0; i < objects.size(); i++)
-    {
-        bounds[i] = objects[i]->Bounds();
-    }
-
-    std::vector<int> indices(objects.size());
+    std::vector<int> indices(entities.size());
     std::iota(indices.begin(), indices.end(), 0);
 
-    detail::BuildRecursive(indices, 0, static_cast<int>(indices.size()), objects, bounds, outNodes, outObjects);
+    detail::BuildRecursive(indices, 0, static_cast<int>(indices.size()), entities, bounds, outNodes, outEntities);
 }
 
 #endif // BVH_H

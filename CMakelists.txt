@@ -48,29 +48,95 @@ FetchContent_Declare(SDL3_image
 )
 FetchContent_MakeAvailable(SDL3_image)
 
+set(DEPS_DIR "${CMAKE_SOURCE_DIR}/external")
+
+add_library(entt INTERFACE)
+target_include_directories(entt INTERFACE "${DEPS_DIR}/entt")
+
 add_executable(${PROJECT_NAME}
     main.cpp
+    renderer/renderer.cpp
+    scene/scene_builders.cpp
+    scene/stb_image_impl.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
-
-# The shaders are loaded at runtime by relative path, so they have to sit next
-# to the executable - otherwise launching from anywhere but the repo root (the
-# VS debugger, a double-click, a packaged build) fails at pipeline creation
-# with "Failed to load shader". Assets are staged the same way.
-set(RUNTIME_ASSETS
-    # ${CMAKE_CURRENT_SOURCE_DIR}/path_trace.comp.dxil
-    ${CMAKE_CURRENT_SOURCE_DIR}/ray_trace.comp.dxil
+# The source root is on the include path so every internal header is included
+# by its path from the repo root ("scene/shapes.h", "core/common.h"). That
+# keeps includes identical no matter which directory the including file is in.
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${DEPS_DIR}
 )
 
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+SDL3::SDL3 
+SDL3_image::SDL3_image
+entt
+)
+
+# --- Shaders ----------------------------------------------------------------
+#
+# Compiled as part of the build, straight into the executable directory. They
+# used to be compiled by hand and copied in by a hardcoded list, which drifted:
+# the list named only the .dxil while the device is created with SPIRV first,
+# so the app loaded a .spv that nothing in the build ever refreshed. Every
+# shader edit silently had no effect on the running binary.
+#
+# dxc ships with the Vulkan SDK. If it is not found the build still succeeds
+# and reuses whatever is already staged, with a warning.
+find_program(DXC_EXECUTABLE
+    NAMES dxc
+    HINTS $ENV{VULKAN_SDK}/Bin $ENV{VULKAN_SDK}/bin
+    DOC "DirectX Shader Compiler, used to build the compute shaders"
+)
+
+set(SHADER_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/ray_trace.comp.hlsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/ray_trace.comp.hybrid.hlsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/path_trace.comp.hlsl
+)
+
+if(DXC_EXECUTABLE)
+    set(COMPILED_SHADERS "")
+    foreach(SHADER ${SHADER_SOURCES})
+        # NAME_WE would cut at the first dot and turn "ray_trace.comp.hlsl"
+        # into "ray_trace" - the runtime looks for "ray_trace.comp.spv".
+        get_filename_component(SHADER_FILE ${SHADER} NAME)
+        string(REGEX REPLACE "\\.hlsl$" "" SHADER_NAME ${SHADER_FILE})
+        set(SHADER_SPV ${BINARY_DIR}/${SHADER_NAME}.spv)
+
+        add_custom_command(
+            OUTPUT ${SHADER_SPV}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${BINARY_DIR}
+            # No -fspv-target-env: the default (vulkan1.0) emits SPIR-V 1.0,
+            # which is what SDL's Vulkan backend validates against. Asking for
+            # vulkan1.3 emits SPIR-V 1.6 and spirv-val rejects the module.
+            COMMAND ${DXC_EXECUTABLE} -spirv -T cs_6_0 -E main
+                    ${SHADER} -Fo ${SHADER_SPV}
+            DEPENDS ${SHADER}
+            COMMENT "Compiling ${SHADER_NAME}.hlsl -> ${SHADER_NAME}.spv"
+            VERBATIM
+        )
+        list(APPEND COMPILED_SHADERS ${SHADER_SPV})
+    endforeach()
+
+    add_custom_target(shaders ALL DEPENDS ${COMPILED_SHADERS})
+    add_dependencies(${PROJECT_NAME} shaders)
+else()
+    message(WARNING
+        "dxc not found - shaders will NOT be rebuilt. Install the Vulkan SDK or "
+        "set VULKAN_SDK. The app will run against whatever .spv is already in "
+        "${BINARY_DIR}, which may be stale.")
+endif()
+
+# Textures are loaded at runtime by relative path, so they have to sit next to
+# the executable - otherwise launching from anywhere but the repo root (the VS
+# debugger, a double-click, a packaged build) fails to find them.
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${RUNTIME_ASSETS}
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/brick
         $<TARGET_FILE_DIR:${PROJECT_NAME}>/brick
-    COMMENT "Staging shaders and assets next to the executable"
+    COMMENT "Staging assets next to the executable"
 )
 
 if(WIN32)

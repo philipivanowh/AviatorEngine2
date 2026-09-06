@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cfloat>
 
-#include "vec3.h"
+#include "math/vec3.h"
 
 // A minimal axis-aligned bounding box. Deliberately has no knowledge of
 // Sphere/scene types so it stays reusable if other primitive types are
@@ -94,7 +94,7 @@ inline AABB SurroundPoint(const AABB &a, float x, float y, float z)
         std::max(a.max_z, z)};
 }
 
-inline AABB Surround2Points(const point3& a, const point3& b)
+inline AABB Surround2Points(const Point3& a, const Point3& b)
 {
     return AABB{
         std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z),

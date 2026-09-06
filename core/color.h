@@ -11,6 +11,11 @@
 // along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //==============================================================================================
 
+#include <cmath>
+#include <ostream>
+
+#include "core/interval.h"
+#include "math/vec3.h"
 
 using Color = Vec3<float>;
 
@@ -24,7 +29,7 @@ inline double linear_to_gamma(double linear_component)
 }
 
 
-void write_color(std::ostream& out, const Color& pixel_color) {
+inline void write_color(std::ostream& out, const Color& pixel_color) {
     auto r = pixel_color.x;
     auto g = pixel_color.y;
     auto b = pixel_color.z;

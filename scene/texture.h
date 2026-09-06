@@ -1,10 +1,11 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#define STB_IMAGE_IMPLEMENTATION
+// stb_image is compiled once, in scene/stb_image_impl.cpp - this header only
+// pulls in the declarations.
 #define STBI_FAILURE_USERMSG
 #include "external/stb_image.h"
-#include "common.h"
+#include "core/common.h"
 
 #include <SDL3/SDL.h>
 

@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -111,10 +111,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -122,10 +122,8 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Staging shaders and assets next to the executable	</Message>
+      <Message>Staging assets next to the executable	</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/hahoa/Documents/GitHub/AviatorEngine2/ray_trace.comp.dxil C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
-if %errorlevel% neq 0 goto :cmEnd
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/brick C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/brick
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -164,7 +162,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -190,10 +188,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -201,10 +199,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Staging shaders and assets next to the executable	</Message>
+      <Message>Staging assets next to the executable	</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/hahoa/Documents/GitHub/AviatorEngine2/ray_trace.comp.dxil C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
-if %errorlevel% neq 0 goto :cmEnd
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/brick C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/brick
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -243,7 +239,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -269,10 +265,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -280,10 +276,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Staging shaders and assets next to the executable	</Message>
+      <Message>Staging assets next to the executable	</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/hahoa/Documents/GitHub/AviatorEngine2/ray_trace.comp.dxil C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/MinSizeRel
-if %errorlevel% neq 0 goto :cmEnd
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/brick C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/MinSizeRel/brick
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -322,7 +316,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck></BufferSecurityCheck>
@@ -347,10 +341,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\hahoa\Documents\GitHub\AviatorEngine2;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-build\include-revision;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-src\include;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\external\entt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -358,10 +352,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>Staging shaders and assets next to the executable	</Message>
+      <Message>Staging assets next to the executable	</Message>
       <Command>setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -E copy_if_different C:/Users/hahoa/Documents/GitHub/AviatorEngine2/ray_trace.comp.dxil C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/RelWithDebInfo
-if %errorlevel% neq 0 goto :cmEnd
 "C:\Program Files\CMake\bin\cmake.exe" -E copy_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/brick C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/RelWithDebInfo/brick
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -457,6 +449,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\main.cpp" />
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\renderer\renderer.cpp" />
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\scene\scene_builders.cpp" />
+    <ClCompile Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\scene\stb_image_impl.cpp" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -473,6 +468,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\_deps\sdl3_image-build\SDL3_image-shared.vcxproj">
       <Project>{BEAC3065-F746-3D8D-B169-171DE8952165}</Project>
       <Name>SDL3_image-shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\hahoa\Documents\GitHub\AviatorEngine2\build\shaders.vcxproj">
+      <Project>{336C7194-85D7-3475-B5A7-44740294AFB7}</Project>
+      <Name>shaders</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

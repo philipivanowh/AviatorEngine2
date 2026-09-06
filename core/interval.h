@@ -1,12 +1,20 @@
 #ifndef INTERVAL_H
 #define INTERVAL_H
 
+#include <limits>
+
 class interval
 {
 public:
     double min, max;
 
-    interval() : min(+infinity), max(-infinity) {} // Default interval is empty
+    // std::numeric_limits directly rather than common.h's `infinity`:
+    // common.h includes this header, so depending on it here is a cycle.
+    interval()
+        : min(+std::numeric_limits<double>::infinity()),
+          max(-std::numeric_limits<double>::infinity())
+    {
+    } // Default interval is empty
 
     interval(double min, double max) : min(min), max(max) {}
 
@@ -37,7 +45,11 @@ public:
     static const interval empty, universe;
 };
 
-const interval interval::empty = interval(+infinity, -infinity);
-const interval interval::universe = interval(-infinity, +infinity);
+inline const interval interval::empty =
+    interval(+std::numeric_limits<double>::infinity(),
+             -std::numeric_limits<double>::infinity());
+inline const interval interval::universe =
+    interval(-std::numeric_limits<double>::infinity(),
+             +std::numeric_limits<double>::infinity());
 
 #endif

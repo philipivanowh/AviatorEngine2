@@ -63,10 +63,10 @@ constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
 
 // Common Headers
 
-#include "interval.h"
-#include "aabb.h"
-#include "vec3.h"
-#include "color.h"
+#include "core/interval.h"
+#include "scene/aabb.h"
+#include "math/vec3.h"
+#include "core/color.h"
 
 
 #endif
