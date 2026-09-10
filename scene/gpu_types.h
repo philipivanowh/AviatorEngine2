@@ -17,6 +17,7 @@ enum class BodyShape : Uint32
     Quad = 1,
     Box = 2,
     Triangle = 3,
+    Mesh = 4,
 };
 
 // Must match the HLSL Object struct byte for byte. Every float3 is followed by
@@ -55,7 +56,9 @@ struct Object_GPU
     float rotation;               // 76  Y rotation: sphere UV spin / box yaw
     float density;                // 80  volume density; 0 = solid surface
     float emission;               // 84
-    float pad3[2];                // 88
+    Uint32 instanceIndex;                // 88
+
+    float pad3;
 
     // Materials
     float r, g, b;
@@ -66,6 +69,21 @@ struct Object_GPU
     Uint32 colorType; // MaterialType
     Uint32 textureID; // texture array layer, or kNoTexture
 };
+
+// 48 bytes. Rigid transform only - position + unit quaternion, no scale.
+struct MeshInstance_GPU
+{
+    float px, py, pz;          //  0  instance origin in world space
+    float pad0;                // 12
+    float qx, qy, qz, qw;      // 16  world rotation; matches Quat<float>'s
+                               //     MEMORY layout (x,y,z,w) and HLSL float4.
+                               //     Note Quat's 4-arg CTOR is (w,x,y,z).
+    Uint32 vertexBase;         // 32
+    Uint32 indexBase;          // 36
+    Uint32 triangleCount;      // 40
+    Uint32 blasBase;           // 44
+};
+static_assert(sizeof(MeshInstance_GPU) == 48, "must match the HLSL MeshInstance stride");
 
 // These offsets are what `spirv-dis` reports for the HLSL Object struct. A
 // mismatch here is invisible at runtime - the shader just reads the wrong

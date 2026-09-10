@@ -1,6 +1,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include <algorithm>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -64,7 +65,11 @@ struct Config
     Uint32 num_spheres;
     Uint32 renderType;
     Uint32 num_lights;
-    float padding1[2];
+
+    // Scales linear radiance before tone mapping. 1.0 is neutral; lower it
+    // when the scene's lights push everything into the top of the curve.
+    float exposure;
+    float padding1;
 };
 
 // GPU-resident storage plus the matching upload transfer buffers, sized once
@@ -78,9 +83,26 @@ struct SceneBuffers
     SDL_GPUTransferBuffer *objectTransfer = nullptr;
     SDL_GPUTransferBuffer *bvhTransfer = nullptr;
     SDL_GPUTransferBuffer *lightIDTransfer = nullptr;
+
+    // Mesh geometry. The first three are written once at load - geometry is
+    // local-space and shared, so nothing about it changes when an instance
+    // moves - while instances are re-uploaded with the BVH every rebuild.
+    SDL_GPUBuffer *vertexBuffer = nullptr;
+    SDL_GPUBuffer *indexBuffer = nullptr;
+    SDL_GPUBuffer *blasBuffer = nullptr;
+    SDL_GPUBuffer *instanceBuffer = nullptr;
+    SDL_GPUTransferBuffer *vertexTransfer = nullptr;
+    SDL_GPUTransferBuffer *indexTransfer = nullptr;
+    SDL_GPUTransferBuffer *blasTransfer = nullptr;
+    SDL_GPUTransferBuffer *instanceTransfer = nullptr;
+
     Uint32 maxObjects = 0;
     Uint32 maxNodes = 0;
     Uint32 maxLights = 0;
+    Uint32 maxVertices = 0;
+    Uint32 maxIndices = 0;
+    Uint32 maxBLASNodes = 0;
+    Uint32 maxInstances = 0;
 };
 
 // What the caller chooses before the window exists. Everything else is derived
@@ -125,6 +147,12 @@ public:
     // Any change to the image - camera motion, geometry motion - has to restart
     // it, or moving content smears across the average.
     void ResetAccumulation() { accumulationFrame = 0; }
+
+    // Exposure multiplier applied to linear radiance before the tone curve.
+    // Purely a display control - it does not touch the accumulation buffer, so
+    // changing it re-grades the existing image without restarting convergence.
+    float Exposure() const { return config.exposure; }
+    void SetExposure(float value) { config.exposure = std::max(value, 0.01f); }
     Uint32 AccumulatedSamples() const { return (accumulationFrame + 1) * config.samples; }
 
     // One frame: rebuild if dirty, dispatch the compute pass, blit to the
@@ -151,12 +179,19 @@ private:
     bool CreateSceneBuffers(Uint32 maxObjects, Uint32 maxNodes, Uint32 maxLights);
     void ReleaseSceneBuffers();
 
+    // Uploads the mesh library's local-space geometry. Called once from
+    // LoadScene: vertices, indices and BLAS nodes never change after that,
+    // because instancing is precisely the trick of not touching geometry when
+    // an object moves.
+    bool UploadMeshGeometry(const MeshLibrary &library);
+
     // Re-maps the persistent transfer buffers and re-uploads them into the
     // persistent GPU buffers. `cycle = true` lets SDL_gpu double-buffer the
     // resource internally instead of stalling on the previous frame's use.
     bool UploadScene(const std::vector<Object_GPU> &objects,
                      const std::vector<BVHNode_GPU> &nodes,
-                     const std::vector<uint32_t> &lightIDs);
+                     const std::vector<uint32_t> &lightIDs,
+                     const std::vector<MeshInstance_GPU> &instances);
 
     void RebuildAcceleration(const entt::registry &registry);
 
@@ -166,16 +201,28 @@ private:
     static std::vector<uint32_t> LightIndices(const entt::registry &registry,
                                               const std::vector<entt::entity> &ordered);
 
+    // Packs the object buffer and, as a side effect, the instance buffer: a
+    // mesh entity emits one of each, and the object's instanceIndex is the slot
+    // the instance landed in. They are built together because only this pass
+    // knows how many instances have been emitted so far.
     static std::vector<Object_GPU> PackObjects(const entt::registry &registry,
-                                               const std::vector<entt::entity> &ordered);
-    static std::vector<BVHNode_GPU> PackNodes(const std::vector<BVH_node *> &nodes);
+                                               const std::vector<entt::entity> &ordered,
+                                               const MeshLibrary &library,
+                                               std::vector<MeshInstance_GPU> &outInstances);
     static uint32_t CountLights(const entt::registry &registry);
 
     SDL_Window *window = nullptr;
     SDL_GPUDevice *device = nullptr;
     SDL_GPUComputePipeline *pipeline = nullptr;
     SDL_GPUSampler *linearSampler = nullptr;
+    // Linear HDR accumulation. Averaging only works in linear space, so this
+    // texture must never hold tone-mapped values.
     SDL_GPUTexture *accumTexture = nullptr;
+
+    // What actually reaches the screen: the accumulation tone-mapped and
+    // sRGB-encoded. Kept separate so the tone curve is applied once at display
+    // time rather than being folded back into next frame's running average.
+    SDL_GPUTexture *displayTexture = nullptr;
     SDL_GPUTexture *globalTextureArray = nullptr;
 
     SceneBuffers buffers;
@@ -185,9 +232,15 @@ private:
     // capacity instead of reallocating 60 times a second.
     std::vector<entt::entity> renderables;
     std::vector<AABB> renderableBounds;
-    std::vector<BVH_node *> nodes;
+    std::vector<BVHNode_GPU> nodes;
+    std::vector<uint32_t> buildOrder; // BVH slot -> index into `renderables`
     std::vector<entt::entity> orderedEntities;
     std::vector<uint32_t> lightIDs;
+    std::vector<MeshInstance_GPU> instances;
+
+    // Borrowed from the Scene at LoadScene time; the Scene outlives the frame
+    // loop, so this is a non-owning view of its mesh library.
+    const MeshLibrary *meshLibrary = nullptr;
 
     bool sceneDirty = true;
     Uint32 accumulationFrame = 0;

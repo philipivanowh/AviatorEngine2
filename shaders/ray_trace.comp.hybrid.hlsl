@@ -14,11 +14,15 @@
 #define SphereShapeType 0
 #define QuadShapeType 1
 #define BoxShapeType 2
+#define TriangleShapeType 3
+#define MeshShapeType 4
 
 // Must match kNoTexture in texture.h. Means "no image texture, use flat albedo".
 #define INVALID_TEXTURE 0xFFFFFFFFu
 #define TAU 6.2831853f
 #define PI 3.14159265f
+
+#define BLAS_STACK_SIZE 24
 
 // Max BVH depth the traversal stack can hold. 32 is comfortable for
 // thousands of objects with the median-split builder in bvh.h; bump it
@@ -67,8 +71,8 @@ struct Object
     float UvRotation;
     float Density;
     float Emission;
-    float pad3a;
-    float pad3b;
+    uint InstanceIndex;
+    float pad3;
 
     float3 Albedo;
     float Fuzz;
@@ -136,19 +140,84 @@ cbuffer UniformBuffer : register(b0, space2)
     uint NumSpheres;
     uint RenderType;
     uint NumLights;
-    float padding4;
+    float Exposure;
     float padding5;
+};
+
+// Mirrors MeshInstance_GPU in scene/gpu_types.h byte for byte. Scalars, not
+// float3/float4 - a float3 here aligns to 16 and desyncs the stride, the same
+// trap that forced pad0/pad1/pad2 into Object.
+struct MeshInstance
+{
+    float px, py, pz;
+    float pad0;
+    float qx, qy, qz, qw;
+    uint vertexBase;
+    uint indexBase;
+    uint triangleCount;
+    uint blasBase;
+};
+
+// Mirrors Vertex_GPU in scene/mesh_library.h byte for byte. Same scalar rule.
+struct Vertex
+{
+    float px, py, pz;
+    float nx, ny, nz;
+    float u, v;
 };
 
 Texture2DArray GlobalTextureArray : register(t0, space0);
 SamplerState GlobalSampler : register(s0, space0);
 
+// Storage buffers share the `t` register namespace with sampled textures, so
+// these start at t1 - t0 is GlobalTextureArray above. This order must match the
+// bind array in Renderer::RenderFrame and the count in CreateComputePipeline;
+// a mismatch leaves the tail buffers unbound and reading zeroes, silently.
 StructuredBuffer<Object> objects : register(t1, space0);
 StructuredBuffer<BVHNode> bvh : register(t2, space0);
-StructuredBuffer<uint> lightIDs : register(t3,space0);
+StructuredBuffer<uint> lightIDs : register(t3, space0);
+
+// Mesh geometry: one global buffer per kind with every mesh concatenated into
+// it, and a MeshInstance saying where its own mesh starts.
+StructuredBuffer<Vertex> vertices : register(t4, space0);
+StructuredBuffer<uint> meshIndex : register(t5, space0);
+StructuredBuffer<BVHNode> blas : register(t6, space0);
+StructuredBuffer<MeshInstance> instances : register(t7, space0);
 
 [[vk::image_format("rgba16f")]]
 RWTexture2D<float4> image : register(u0, space1);
+
+// The display target. Holds sRGB-ENCODED 8-bit values, written once per frame
+// from the linear accumulation above. Kept separate because averaging is only
+// correct in linear space - tone mapping into `image` would feed the curve back
+// into the next frame's running average and drift as Batch grows.
+[[vk::image_format("rgba8")]]
+RWTexture2D<float4> displayImage : register(u1, space1);
+
+// ACES filmic curve (Narkowicz's fit). Rolls highlights off smoothly instead of
+// clipping them, which is the difference between a bright surface reading as
+// "brightly lit brick" and as a flat white blob. Applied to LINEAR radiance.
+float3 ToneMapACES(float3 x)
+{
+    const float a = 2.51f;
+    const float b = 0.03f;
+    const float c = 2.43f;
+    const float d = 0.59f;
+    const float e = 0.14f;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
+// Linear -> sRGB. The swapchain is a plain UNORM surface the display treats as
+// sRGB, so without this the midtones come out too dark.
+float3 LinearToSRGB(float3 c)
+{
+    c = saturate(c);
+    const float3 lo = c * 12.92f;
+    const float3 hi = 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
+    return float3(c.x <= 0.0031308f ? lo.x : hi.x,
+                  c.y <= 0.0031308f ? lo.y : hi.y,
+                  c.z <= 0.0031308f ? lo.z : hi.z);
+}
 
 static uint seed;
 
@@ -430,6 +499,200 @@ bool HitTriangle(const in Object tri, const in Ray ray,
     return true;
 }
 
+// --- Instance transform helpers. HLSL has no quaternion type, so these mirror
+// --- the free functions in math/quat.hpp; keep the two in step.
+
+float4 quat_conj(float4 q) { return float4(-q.xyz, q.w); }
+
+// Transliteration of rotate() in math/quat.hpp:212 - keep them identical.
+float3 quat_rotate(float4 q, float3 v)
+{
+    const float3 u = q.xyz;
+    const float3 t = 2.0f * cross(u, v);
+    return v + q.w * t + cross(u, t);
+}
+
+// World ray -> mesh local space.
+//
+// The instance transform is rigid - rotation plus translation, never scale -
+// so the rotated direction keeps its length and `t` means the same thing in
+// both spaces. That is why nothing here normalizes: normalizing would rescale
+// t per instance and make hits from different instances incomparable.
+Ray ToLocal(const in MeshInstance inst, const in Ray ray)
+{
+    const float4 inv = quat_conj(float4(inst.qx, inst.qy, inst.qz, inst.qw));
+
+    Ray local;
+    local.Origin = quat_rotate(inv, ray.Origin - float3(inst.px, inst.py, inst.pz));
+    local.Direction = quat_rotate(inv, ray.Direction);
+    local.time = ray.time;
+    return local;
+}
+
+// Slab-test ray/AABB intersection. invDir is precomputed once per ray by
+// the caller since it's reused across every node visited.
+bool IntersectAABB(
+    const in float3 origin,
+    const in float3 invDir,
+    const in float3 bmin,
+    const in float3 bmax,
+    const in float near,
+    const in float far)
+{
+    const float3 t0 = (bmin - origin) * invDir;
+    const float3 t1 = (bmax - origin) * invDir;
+    const float3 tsmall = min(t0, t1);
+    const float3 tbig = max(t0, t1);
+    const float tmin = max(max(tsmall.x, tsmall.y), max(tsmall.z, near));
+    const float tmax = min(min(tbig.x, tbig.y), min(tbig.z, far));
+    return tmin <= tmax;
+}
+
+bool HitMeshTriangle(const in Ray ray, const in float near, const in float far,
+                     const in Vertex a, const in Vertex b, const in Vertex c,
+                     out float t, out float alpha, out float beta, out float3 geoNormal)
+{
+    // Every early return below leaves these untouched, and an out parameter
+    // read after a false return is undefined - initialise up front.
+    t = 0.0f;
+    alpha = 0.0f;
+    beta = 0.0f;
+    geoNormal = float3(0.0f, 0.0f, 1.0f);
+
+    const float3 p0 = float3(a.px, a.py, a.pz);
+    const float3 e1 = float3(b.px, b.py, b.pz) - p0;
+    const float3 e2 = float3(c.px, c.py, c.pz) - p0;
+
+    // Identical to HitTriangle - v0 + two edges, plane test, barycentrics.
+    const float3 n = cross(e1, e2);
+    const float nLenSq = dot(n, n);
+    if (nLenSq < 1e-12f) return false;
+
+    const float denom = dot(n, ray.Direction);
+    if (abs(denom) < 1e-12f) return false;
+
+    t = (dot(n, p0) - dot(n, ray.Origin)) / denom;
+    if (t < near || t > far) return false;
+
+    const float3 w      = n / nLenSq;
+    const float3 planar = ray.Origin + ray.Direction * t - p0;
+    alpha = dot(w, cross(planar, e2));
+    beta  = dot(w, cross(e1, planar));
+    if (alpha < 0.0f || beta < 0.0f || alpha + beta > 1.0f) return false;
+
+    geoNormal = n / sqrt(nLenSq);
+    return true;
+}
+
+bool HitMesh(const in Object object, const in Ray ray,
+             const in float near, const in float far, out Hit hit)
+{
+    const MeshInstance inst = instances[object.InstanceIndex];
+    const Ray   localRay = ToLocal(inst, ray);
+    const float3 invDir  = 1.0f / localRay.Direction;
+
+    int stack[BLAS_STACK_SIZE];
+    int sp = 0;
+    stack[sp++] = 0;
+
+    bool  found     = false;
+    float closest   = far;
+    float bestAlpha = 0.0f, bestBeta = 0.0f;
+    uint  bestBase  = 0;
+    float3 bestGeo  = float3(0.0f, 0.0f, 1.0f);
+
+    while (sp > 0)
+    {
+        const BVHNode node = blas[inst.blasBase + stack[--sp]];
+
+        // `closest`, not `far` - so the walk prunes against hits already found.
+        if (!IntersectAABB(localRay.Origin, invDir, node.Min, node.Max, near, closest))
+            continue;
+
+        if (node.Count > 0)
+        {
+            for (int i = 0; i < node.Count; ++i)
+            {
+                const uint base = inst.indexBase + (uint)(node.Left + i) * 3u;
+                const Vertex a = vertices[inst.vertexBase + meshIndex[base + 0]];
+                const Vertex b = vertices[inst.vertexBase + meshIndex[base + 1]];
+                const Vertex c = vertices[inst.vertexBase + meshIndex[base + 2]];
+
+                float t, alpha, beta;
+                float3 geo;
+                if (HitMeshTriangle(localRay, near, closest, a, b, c, t, alpha, beta, geo))
+                {
+                    closest   = t;
+                    found     = true;
+                    bestAlpha = alpha;
+                    bestBeta  = beta;
+                    bestBase  = base;
+                    bestGeo   = geo;
+                }
+            }
+        }
+        else
+        {
+            stack[sp++] = node.Left;
+            stack[sp++] = node.Right;
+        }
+    }
+
+    if (!found)
+        return false;
+
+    // Re-fetch the winner instead of carrying three Vertex structs through the
+    // whole walk - that is a lot of live registers for data only the closest
+    // hit ever uses.
+    const Vertex a = vertices[inst.vertexBase + meshIndex[bestBase + 0]];
+    const Vertex b = vertices[inst.vertexBase + meshIndex[bestBase + 1]];
+    const Vertex c = vertices[inst.vertexBase + meshIndex[bestBase + 2]];
+
+    const float  w0 = 1.0f - bestAlpha - bestBeta;
+    const float3 shadingLocal = normalize(w0        * float3(a.nx, a.ny, a.nz)
+                                        + bestAlpha * float3(b.nx, b.ny, b.nz)
+                                        + bestBeta  * float3(c.nx, c.ny, c.nz));
+
+    // Orient the geometric normal to agree with the authored vertex normals.
+    //
+    // Facing has to be decided by the geometric normal, but its sign comes from
+    // triangle winding, and winding is easy to get wrong - CreateSphere had it
+    // inverted, so every hit read as a back face and the shading normal was
+    // flipped inward, leaving the sphere unlit. Vertex normals come from the
+    // authoring tool and always point outward, so they are the more trustworthy
+    // reference. This makes a wound-backwards mesh shade correctly instead of
+    // silently going black, which matters once meshes are loaded from files
+    // rather than generated here.
+    float3 geoLocal = bestGeo;
+    if (dot(geoLocal, shadingLocal) < 0.0f)
+    {
+        geoLocal = -geoLocal;
+    }
+
+    const float4 q = float4(inst.qx, inst.qy, inst.qz, inst.qw);
+
+    // t is identical in both spaces because the instance transform is rigid -
+    // a rotation preserves length - so the world position comes straight off
+    // the WORLD ray. No transforming the hit point back.
+    hit.Offset   = closest;
+    hit.Position = ray.Origin + ray.Direction * closest;
+    hit.Normal   = normalize(quat_rotate(q, shadingLocal));
+
+    // Facing is decided by the GEOMETRIC normal. Near silhouettes the shading
+    // normal disagrees with the surface, and using it here puts secondary ray
+    // origins under the geometry - that is the shadow acne everyone blames on
+    // the epsilon.
+    hit.Face = dot(ray.Direction, quat_rotate(q, geoLocal)) < 0.0f;
+    if (!hit.Face)
+        hit.Normal = -hit.Normal;
+
+    hit.surface_uv = w0        * float2(a.u, a.v)
+                   + bestAlpha * float2(b.u, b.v)
+                   + bestBeta  * float2(c.u, c.v);
+    hit.Object = object;
+    return true;
+}
+
 // Planar UVs for whichever face was hit, from the two box-space axes tangent
 // to it, remapped from [-half, +half] to [0, 1].
 float2 BoxFaceUV(float3 localPosition, float3 localNormal, float3 halfExtends)
@@ -567,27 +830,16 @@ bool HitObject(
     {
         return HitQuad(object, ray, near, far, hit);
     }
+    
+    if (object.ShapeType == TriangleShapeType)
+    {
+        return HitTriangle(object, ray, near, far, hit);
+    }
+    if (object.ShapeType == MeshShapeType)
+    {
+        return HitMesh(object, ray, near, far, hit);
+    }
     return HitBox(object, ray, near, far, hit);
-}
-
-
-// Slab-test ray/AABB intersection. invDir is precomputed once per ray by
-// the caller since it's reused across every node visited.
-bool IntersectAABB(
-    const in float3 origin,
-    const in float3 invDir,
-    const in float3 bmin,
-    const in float3 bmax,
-    const in float near,
-    const in float far)
-{
-    const float3 t0 = (bmin - origin) * invDir;
-    const float3 t1 = (bmax - origin) * invDir;
-    const float3 tsmall = min(t0, t1);
-    const float3 tbig = max(t0, t1);
-    const float tmin = max(max(tsmall.x, tsmall.y), max(tsmall.z, near));
-    const float tmax = min(min(tbig.x, tbig.y), min(tbig.z, far));
-    return tmin <= tmax;
 }
 
 // Finds the closest object hit along `ray`, traversing the BVH instead
@@ -671,7 +923,7 @@ float3 SurfaceAlbedo(const in Hit hit)
     float3 albedo = hit.Object.Albedo;
     if (hit.Object.TextureID != INVALID_TEXTURE)
     {
-        albedo *= textureColor(hit.Object.TextureID, hit.surface_uv);
+        albedo = textureColor(hit.Object.TextureID, hit.surface_uv);
     }
     return albedo;
 }
@@ -684,7 +936,7 @@ float3 SurfaceEmission(const in Hit hit)
     {
         return 0.0f;
     }
-    return SurfaceAlbedo(hit) * hit.Object.Emission;
+    return SurfaceAlbedo(hit) ;
 }
 
 // Picks the outgoing direction for one bounce and the throughput to multiply
@@ -894,7 +1146,7 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
 
         for (int shadowBounce = 0; shadowBounce < 4; shadowBounce++)
         {
-            if (!TraverseBVH(currentShadowRay, 0.001f, shadowHit))
+            if (!TraverseBVH (currentShadowRay, 0.001f, shadowHit))
         {
                 break; // clear path to the light
             }
@@ -920,7 +1172,7 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
             // that pairing is the whole point, and dropping the area term is
             // what made large lights in large scenes render black.
             const float3 radiance = lightSource.Emission * lightSource.Albedo;
-            const float3 brdf = SurfaceAlbedo(surfaceHit) / 3.14159265f;
+            const float3 brdf = SurfaceAlbedo(surfaceHit);
 
             directLighting += brdf * radiance * cosTheta * solidAngle;
         }
@@ -1092,14 +1344,20 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     // scratch on movement and gets progressively cleaner while the camera
     // is still - this is what actually gets you "more rays" without paying
     // for them all in a single frame.
+    float3 accumulated;
     if (Batch == 0)
     {
-    image[id] = float4(color, 1.0f);
-}
+        accumulated = color;
+    }
     else
     {
         const float3 previous = image[id].rgb;
         const float weight = 1.0f / float(Batch + 1);
-        image[id] = float4(lerp(previous, color, weight), 1.0f);
+        accumulated = lerp(previous, color, weight);
     }
+
+    // Linear stays in the accumulation buffer; the display gets the graded
+    // copy. Doing it in this order is what keeps the running average valid.
+    image[id] = float4(accumulated, 1.0f);
+    displayImage[id] = float4(LinearToSRGB(ToneMapACES(accumulated * Exposure)), 1.0f);
 }

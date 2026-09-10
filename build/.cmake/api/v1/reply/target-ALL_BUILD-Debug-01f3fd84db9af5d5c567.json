@@ -1,0 +1,137 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"build/_deps/sdl3_image-src/external/libwebp/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "sharpyuv::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webputilsdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdecoder::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdspdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpencode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webp::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpmux::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdsp::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdemux::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "exampleutil::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "imagedec::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "imageioutil::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "imageenc::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webputils::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "libwebpmux::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "ALL_BUILD::@dc31dadf6d13b6eb72d6",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"orderDependencies" : 
+	[
+		{
+			"id" : "sharpyuv::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webputilsdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdecoder::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdspdecode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpencode::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webp::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpmux::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdsp::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webpdemux::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "exampleutil::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "imagedec::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "imageioutil::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "imageenc::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "webputils::@dc31dadf6d13b6eb72d6"
+		},
+		{
+			"id" : "libwebpmux::@dc31dadf6d13b6eb72d6"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/sdl3_image-build/external/libwebp-build",
+		"source" : "build/_deps/sdl3_image-src/external/libwebp"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

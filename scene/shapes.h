@@ -55,6 +55,15 @@ inline Point3 QuadCenter(const TransformComponent &t, const QuadComponent &q)
     return t.position + 0.5f * (rotate(t.rotation, q.u) + rotate(t.rotation, q.v));
 }
 
+inline Point3 TriangleCenter(const TransformComponent &t, const TriangleComponent &tri)
+{
+    // Centroid, not the AABB centre: the average of the three vertices is
+    // v0 + (u + v)/3.
+    return t.position + (rotate(t.rotation, tri.u) + rotate(t.rotation, tri.v)) / 3.0f;
+}
+
+
+
 // World-space bounds. These are what the BVH is built over, so they have to
 // account for the transform - an object whose bounds ignore its rotation gets
 // missed by rays that should hit it.
@@ -78,6 +87,18 @@ inline AABB QuadBounds(const TransformComponent &t, const QuadComponent &q)
     return Surround(d1, d2);
 }
 
+inline AABB TriangleBounds(const TransformComponent &t, const TriangleComponent &tri)
+{
+    const Vec3<float> u = rotate(t.rotation, tri.u);
+    const Vec3<float> v = rotate(t.rotation, tri.v);
+
+    // Three corners, so grow a box around v0 and v1, then absorb v2.
+    AABB box = Surround2Points(t.position, t.position + u);
+    return SurroundPoint(box, t.position.x + v.x,
+                              t.position.y + v.y,
+                              t.position.z + v.z);
+}
+
 inline AABB BoxBounds(const TransformComponent &t, const BoxComponent &b)
 {
     // World AABB of the yaw-rotated box: rotating the half-extent vector and
@@ -89,6 +110,38 @@ inline AABB BoxBounds(const TransformComponent &t, const BoxComponent &b)
     const float ez = s * b.halfExtent.x + c * b.halfExtent.z;
     return AABB{t.position.x - ex, t.position.y - b.halfExtent.y, t.position.z - ez,
                 t.position.x + ex, t.position.y + b.halfExtent.y, t.position.z + ez};
+}
+
+inline Point3 MeshCenter(const TransformComponent &t, const MeshComponent &m)
+{
+    const AABB &b = m.localBounds;
+    const Point3 localCenter(0.5f * (b.min_x + b.max_x),
+                             0.5f * (b.min_y + b.max_y),
+                             0.5f * (b.min_z + b.max_z));
+    return t.position + rotate(t.rotation, localCenter);
+}
+
+inline AABB MeshBounds(const TransformComponent &t, const MeshComponent &m)
+{
+    const AABB &b = m.localBounds;
+    if (b.min_x > b.max_x)
+    {
+        return AABB::Empty(); // no geometry
+    }
+
+    // All eight corners, because an arbitrary rotation can put any of them on
+    // any face of the world box. Cheaper tricks exist for axis-aligned-only
+    // rotations, but this runs once per instance per rebuild, not per ray.
+    AABB world = AABB::Empty();
+    for (int corner = 0; corner < 8; corner++)
+    {
+        const Point3 local((corner & 1) ? b.max_x : b.min_x,
+                           (corner & 2) ? b.max_y : b.min_y,
+                           (corner & 4) ? b.max_z : b.min_z);
+        const Point3 p = t.position + rotate(t.rotation, local);
+        world = SurroundPoint(world, p.x, p.y, p.z);
+    }
+    return world;
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +214,21 @@ inline Object_GPU QuadToGPU(const TransformComponent &t, const QuadComponent &q,
     return o;
 }
 
+inline Object_GPU TriangleToGPU(const TransformComponent &t, const TriangleComponent &tri, const Material &mat)
+{
+    Object_GPU o = BaseGPU(t, mat, BodyShape::Triangle);
+
+    // Rotation is applied here rather than stored, exactly as QuadToGPU does -
+    // HitTriangle's barycentrics are the triangle's own coordinates along u and
+    // v, so rotating the edges carries everything along at zero shader cost.
+    const Vec3<float> u = rotate(t.rotation, tri.u);
+    const Vec3<float> v = rotate(t.rotation, tri.v);
+
+    o.u_x = u.x; o.u_y = u.y; o.u_z = u.z;
+    o.v_x = v.x; o.v_y = v.y; o.v_z = v.z;
+    return o;
+}
+
 inline Object_GPU BoxToGPU(const TransformComponent &t, const BoxComponent &b, const Material &mat)
 {
     Object_GPU o = BaseGPU(t, mat, BodyShape::Box);
@@ -178,6 +246,18 @@ inline Object_GPU BoxToGPU(const TransformComponent &t, const BoxComponent &b, c
     return o;
 }
 
+// A mesh instance carries almost nothing itself: the geometry is in the
+// library's shared buffers, so the object only needs to say "I am a mesh" and
+// point at the instance record that holds the transform and the offsets.
+// instanceIndex is assigned by the packing pass, which is the only place that
+// knows how many instances have been emitted so far.
+inline Object_GPU MeshToGPU(const TransformComponent &t, const Material &mat, Uint32 instanceIndex)
+{
+    Object_GPU o = BaseGPU(t, mat, BodyShape::Mesh);
+    o.instanceIndex = instanceIndex;
+    return o;
+}
+
 // ---------------------------------------------------------------------------
 // Entity dispatchers
 // ---------------------------------------------------------------------------
@@ -191,7 +271,8 @@ inline Object_GPU BoxToGPU(const TransformComponent &t, const BoxComponent &b, c
 inline bool IsRenderable(const entt::registry &registry, entt::entity e)
 {
     return registry.all_of<TransformComponent, MaterialComponent>(e) &&
-           registry.any_of<SphereComponent, QuadComponent, BoxComponent>(e);
+           registry.any_of<SphereComponent, QuadComponent, BoxComponent,
+                           TriangleComponent, MeshComponent>(e);
 }
 
 inline AABB EntityBounds(const entt::registry &registry, entt::entity e)
@@ -202,6 +283,10 @@ inline AABB EntityBounds(const entt::registry &registry, entt::entity e)
         return SphereBounds(t, *s);
     if (const auto *q = registry.try_get<QuadComponent>(e))
         return QuadBounds(t, *q);
+    if (const auto *tri = registry.try_get<TriangleComponent>(e))
+        return TriangleBounds(t, *tri);
+    if (const auto *m = registry.try_get<MeshComponent>(e))
+        return MeshBounds(t, *m);
     if (const auto *b = registry.try_get<BoxComponent>(e))
         return BoxBounds(t, *b);
 
@@ -216,6 +301,10 @@ inline Point3 EntityCenter(const entt::registry &registry, entt::entity e)
         return SphereCenter(t, *s);
     if (const auto *q = registry.try_get<QuadComponent>(e))
         return QuadCenter(t, *q);
+    if (const auto *tri = registry.try_get<TriangleComponent>(e))
+        return TriangleCenter(t, *tri);
+    if (const auto *m = registry.try_get<MeshComponent>(e))
+        return MeshCenter(t, *m);
     if (const auto *b = registry.try_get<BoxComponent>(e))
         return BoxCenter(t, *b);
 
@@ -233,7 +322,12 @@ inline Object_GPU EntityToGPU(const entt::registry &registry, entt::entity e)
         return QuadToGPU(t, *q, mat);
     if (const auto *b = registry.try_get<BoxComponent>(e))
         return BoxToGPU(t, *b, mat);
+    if (const auto *tri = registry.try_get<TriangleComponent>(e))
+        return TriangleToGPU(t, *tri, mat);
 
+    // Mesh instances are deliberately absent: packing one needs an instance
+    // index, which only the packing pass knows. See Renderer::PackObjects,
+    // which checks for MeshComponent before falling back to this.
     return Object_GPU{};
 }
 
@@ -279,6 +373,22 @@ inline void GatherRenderables(const entt::registry &registry,
         {
             outEntities.push_back(e);
             outBounds.push_back(BoxBounds(view.get<TransformComponent>(e), view.get<BoxComponent>(e)));
+        }
+    }
+    {
+        auto view = registry.view<TransformComponent, MaterialComponent, TriangleComponent>();
+        for (auto e : view)
+        {
+            outEntities.push_back(e);
+            outBounds.push_back(TriangleBounds(view.get<TransformComponent>(e), view.get<TriangleComponent>(e)));
+        }
+    }
+    {
+        auto view = registry.view<TransformComponent, MaterialComponent, MeshComponent>();
+        for (auto e : view)
+        {
+            outEntities.push_back(e);
+            outBounds.push_back(MeshBounds(view.get<TransformComponent>(e), view.get<MeshComponent>(e)));
         }
     }
 }

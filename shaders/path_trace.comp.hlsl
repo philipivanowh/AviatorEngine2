@@ -14,11 +14,16 @@
 #define SphereShapeType 0
 #define QuadShapeType 1
 #define BoxShapeType 2
+#define TriangleShapeType 3
+#define MeshShapeType 4
 
 // Must match kNoTexture in texture.h. Means "no image texture, use flat albedo".
 #define INVALID_TEXTURE 0xFFFFFFFFu
 #define TAU 6.2831853f
 #define PI 3.14159265f
+
+
+#define BLAS_STACK_SIZE 24
 
 // Max BVH depth the traversal stack can hold. 32 is comfortable for
 // thousands of objects with the median-split builder in bvh.h; bump it
@@ -45,11 +50,20 @@ struct Object
 
     float Radius;
 
+// For quads, the two edge vectors spanning the parallelogram. For boxes, the
     float3 vector_u;
     float pad1;
     float3 vector_v;
     float pad2;
 
+// //For triangles
+//     float3 vertex;
+//     float pad3;
+    
+
+
+
+//For boxes, the half-extents along each axis. For quads, the half-width and
     float3 Half_extends;
 
     // Scalars, not `float UvRotation; float3 pad;` - a float3 here would be
@@ -58,8 +72,8 @@ struct Object
     float UvRotation;
     float Density;
     float Emission;
-    float pad3a;
-    float pad3b;
+    uint InstanceIndex;
+    float pad3;
 
     float3 Albedo;
     float Fuzz;
@@ -70,6 +84,7 @@ struct Object
     uint ColorType;
     uint TextureID;
 };
+
 
 
 // Matches BVHNode in bvh.h byte-for-byte.
@@ -97,6 +112,7 @@ struct Hit
     Object Object;
     uint materialId;
 };
+
 
 
 cbuffer UniformBuffer : register(b0, space2)
@@ -127,17 +143,49 @@ cbuffer UniformBuffer : register(b0, space2)
     uint NumSpheres;
     uint RenderType;
     uint NumLights;
-    float padding4;
+    float Exposure;
     float padding5;
+};
+
+// Mirrors MeshInstance_GPU in scene/gpu_types.h byte for byte. Scalars, not
+// float3/float4 - a float3 here aligns to 16 and desyncs the stride, the same
+// trap that forced pad0/pad1/pad2 into Object.
+struct MeshInstance
+{
+    float px, py, pz;
+    float pad0;
+    float qx, qy, qz, qw;
+    uint vertexBase;
+    uint indexBase;
+    uint triangleCount;
+    uint blasBase;
+};
+
+// Mirrors Vertex_GPU in scene/mesh_library.h byte for byte. Same scalar rule.
+struct Vertex
+{
+    float px, py, pz;
+    float nx, ny, nz;
+    float u, v;
 };
 
 Texture2DArray GlobalTextureArray : register(t0, space0);
 SamplerState GlobalSampler : register(s0, space0);
 
+// Storage buffers share the `t` register namespace with sampled textures, so
+// these start at t1 - t0 is GlobalTextureArray above. This order must match the
+// bind array in Renderer::RenderFrame and the count in CreateComputePipeline;
+// a mismatch leaves the tail buffers unbound and reading zeroes, silently.
 StructuredBuffer<Object> objects : register(t1, space0);
 StructuredBuffer<BVHNode> bvh : register(t2, space0);
+StructuredBuffer<uint> lightIDs : register(t3, space0);
 
-StructuredBuffer<uint> lightIDs : register(t3,space0);
+// Mesh geometry: one global buffer per kind with every mesh concatenated into
+// it, and a MeshInstance saying where its own mesh starts.
+StructuredBuffer<Vertex> vertices : register(t4, space0);
+StructuredBuffer<uint> meshIndex : register(t5, space0);
+StructuredBuffer<BVHNode> blas : register(t6, space0);
+StructuredBuffer<MeshInstance> instances : register(t7, space0);
 
 
 [[vk::image_format("rgba32f")]]

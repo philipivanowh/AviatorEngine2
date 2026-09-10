@@ -1,7 +1,13 @@
+#ifndef MESH_H
+#define MESH_H
+
 #include <vector>
 #include "math/vec3.h"
 #include "core/common.h"
 #include "scene/material.h"
+#include "scene/gpu_types.h"
+#include "scene/bvh.h"
+
 struct Vertex
 {
     float x, y, z;    // Position
@@ -9,6 +15,7 @@ struct Vertex
     float nx, ny, nz; // Normal
     float u, v;       // Texture coordinates
 };
+
 
 class Mesh
 {
@@ -202,16 +209,27 @@ inline Mesh Mesh::CreateSphere(float radius, const uint16_t segments, uint16_t r
             uint16_t c = (ring + 1) * (segments + 1) + seg;
             uint16_t d = c + 1;
 
+            // Winding matters: cross(v1 - v0, v2 - v0) is the geometric normal,
+            // and the ray tracer uses its sign to decide front face from back.
+            // The order used to be (a, c, b) / (b, c, d), which at the equator
+            // gives edges pointing south and east - and cross(south, east)
+            // points INTO the sphere. Every hit then read as a back face, the
+            // shading normal was flipped inward, and the sphere rendered
+            // unlit. CreateBox above was always wound correctly, which is why
+            // only spheres showed it.
+            //
+            // Counter-clockwise seen from outside, matching CreateBox.
             inds.push_back(a);
-            inds.push_back(c);
             inds.push_back(b);
+            inds.push_back(c);
 
             inds.push_back(b);
-            inds.push_back(c);
             inds.push_back(d);
-
+            inds.push_back(c);
             }
     }
 
     return Mesh(verts, inds, AABB{-radius, -radius, -radius, radius, radius, radius});
 }
+
+#endif // MESH_H

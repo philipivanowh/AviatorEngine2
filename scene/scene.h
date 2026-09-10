@@ -122,6 +122,7 @@ class Scene
 {
 public:
     TextureLibrary textures;
+    MeshLibrary meshes;
 
     Scene() = default;
 
@@ -139,7 +140,31 @@ public:
         registry.emplace<RestTransformComponent>(e, center, Identity());
         registry.emplace<MaterialComponent>(e, mat);
         registry.emplace<SphereComponent>(e, radius);
-        registry.emplace<MeshComponent>(e, Mesh::CreateSphere(radius, 32, 16, mat));
+
+        created.push_back(e);
+        return EntityGroup(registry, e);
+    }
+
+    // A mesh instance: shared geometry from the library, positioned by this
+    // entity's transform. Prefer this over exploding a mesh into individual
+    // triangle entities - a tessellated sphere is ~2000 triangles, which as
+    // standalone objects is 256 KB of Object_GPU and a full BVH rebuild every
+    // time it moves, against 128 bytes and one instance here.
+    EntityGroup AddMeshInstance(entt::registry &registry, MeshHandle mesh, Point3 origin, const Material &mat)
+    {
+        SDL_assert(mat.type != MaterialType::Isotropic &&
+                   "a mesh surface cannot bound a volume - use a Sphere or Box");
+        SDL_assert(mesh != kNoMesh && "AddMeshInstance needs a mesh registered with scene.meshes");
+
+        const entt::entity e = registry.create();
+        registry.emplace<TagComponent>(e, "Mesh");
+        registry.emplace<TransformComponent>(e, origin, Identity());
+        registry.emplace<RestTransformComponent>(e, origin, Identity());
+        registry.emplace<MaterialComponent>(e, mat);
+
+        // The local bounds are cached on the component so bounds and BVH
+        // gathering stay pure functions of the registry - see MeshBounds.
+        registry.emplace<MeshComponent>(e, mesh, meshes.Range(mesh).localBounds);
 
         created.push_back(e);
         return EntityGroup(registry, e);
@@ -159,6 +184,22 @@ public:
         registry.emplace<RestTransformComponent>(e, origin, Identity());
         registry.emplace<MaterialComponent>(e, mat);
         registry.emplace<QuadComponent>(e, u, v);
+
+        created.push_back(e);
+        return EntityGroup(registry, e);
+    }
+
+    EntityGroup AddTriangle(entt::registry &registry, Point3 a, Point3 b, Point3 c, const Material &mat)
+    {
+        SDL_assert(mat.type != MaterialType::Isotropic &&
+                   "a triangle is infinitely thin - a volume needs a Sphere or Box boundary");
+
+        const entt::entity e = registry.create();
+        registry.emplace<TagComponent>(e, "Triangle");
+        registry.emplace<TransformComponent>(e, a, Identity());
+        registry.emplace<RestTransformComponent>(e, a, Identity());
+        registry.emplace<MaterialComponent>(e, mat);
+        registry.emplace<TriangleComponent>(e, b - a, c - a);
 
         created.push_back(e);
         return EntityGroup(registry, e);

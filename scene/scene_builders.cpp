@@ -235,10 +235,46 @@ void BuildTestAllFeatureScene(Scene &scene, entt::registry &registry)
         }
     }
 
+    scene.AddTriangle(registry,
+                  Point3(150.0f,   0.0f, 200.0f),
+                  Point3(400.0f,   0.0f, 200.0f),
+                  Point3(275.0f, 250.0f, 200.0f),
+                  Material::Lambertian(Color(0.9f, 0.2f, 0.2f)).Textured(brick));
+
+    // --- Mesh instances, the vertex-buffer path.
+    //
+    // These two are the correctness test for the two-level structure. The box
+    // is 12 triangles with per-face normals, so it must look exactly like an
+    // analytic AddBox of the same size - flat is the right answer for a box.
+    // The sphere is where the payoff shows: HitMesh interpolates the per-vertex
+    // normals CreateSphere has always computed, so it shades smooth rather than
+    // faceted, and it costs one 48-byte instance instead of 2048 objects.
+    const MeshHandle boxMesh = scene.meshes.Add(
+        Mesh::CreateBox(Vec3<float>(60.0f, 60.0f, 60.0f),
+                        Material::Lambertian(Color(1.0f, 1.0f, 1.0f)),
+                        AABB{-60.0f, -60.0f, -60.0f, 60.0f, 60.0f, 60.0f}));
+
+    const MeshHandle sphereMesh = scene.meshes.Add(
+        Mesh::CreateSphere(10.0f, 32, 16, Material::Lambertian(Color(1.0f, 1.0f, 1.0f))));
+
+    scene.AddMeshInstance(registry, boxMesh, Point3(-150.0f, 160.0f, 100.0f),
+                          Material::Lambertian(Color(0.85f, 0.65f, 0.2f)));
+
+    scene.AddMeshInstance(registry, sphereMesh, Point3(80.0f, 380.0f, 60.0f),
+                          Material::Lambertian(Color(0.25f, 0.6f, 0.85f)));
+
+    // An analytic twin of the mesh sphere: same radius, same material, offset
+    // along the camera's horizontal axis so the two sit side by side. They
+    // should be the same size and shade the same way - this is the regression
+    // check for HitMesh against HitSphere, and it is what caught the inverted
+    // triangle winding in CreateSphere.
+    scene.AddSphere(registry, Point3(-120.0f, 380.0f, 60.0f), 70.0f,
+                    Material::Lambertian(Color(0.75f, 0.2f, 0.85f)).Textured(brick));
+
     // --- The overhead light.
     scene.AddQuad(registry, Point3(123.0f, 554.0f, 147.0f),
                   Vec3(300.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 265.0f),
-                  Material::Emissive(Color(1.0f, 1.0f, 1.0f), 7.0f));
+                  Material::Emissive(Color(1.0f, 1.0f, 1.0f), 5.0f));
 
     // --- Hero spheres.
     // The book gives this one motion blur; static here (see note above).
@@ -262,8 +298,8 @@ void BuildTestAllFeatureScene(Scene &scene, entt::registry &registry)
     //scene.AddVolume(registry, Point3(0.0f, 0.0f, 0.0f), 5000.0f, Color(1.0f, 1.0f, 1.0f), 0.0001f);
 
     // --- Textured sphere (earth map in the book).
-    scene.AddSphere(registry, Point3(400.0f, 200.0f, 400.0f), 100.0f,
-                    Material::Lambertian(Color(1.0f, 1.0f, 1.0f)).Textured(brick));
+    scene.AddSphere(registry, Point3(700.0f, 500.0f, 400.0f), 100.0f,
+                    Material::Lambertian(Color(1.0f, 1.0f, 1.0f)));
 
     // --- Perlin-noise sphere in the book; plain matte here.
     scene.AddSphere(registry, Point3(220.0f, 280.0f, 300.0f), 80.0f,

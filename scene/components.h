@@ -9,7 +9,7 @@
 #include "math/quat.hpp"
 #include "core/color.h"
 #include "scene/material.h"
-#include "scene/mesh.h"
+#include "scene/mesh_library.h"
 
 // Components are plain data. Everything that used to be a virtual on Object
 // lives in shapes.h as a free function that reads these - see the note there
@@ -63,19 +63,31 @@ struct QuadComponent
     Vec3<float> v = Vec3<float>(0.0f, 1.0f, 0.0f);
 };
 
+struct TriangleComponent
+{
+    Vec3<float> u = Vec3<float>(1.0f, 0.0f, 0.0f);
+    Vec3<float> v = Vec3<float>(0.0f, 1.0f, 0.0f);
+};
+
 struct BoxComponent
 {
     Vec3<float> halfExtent = Vec3<float>(1.0f, 1.0f, 1.0f);
 };
 
-// Placeholder for the vertex-buffer path. When it lands it slots in as a
-// fourth shape component - a new struct, a new case in the shapes.h
-// dispatchers, and nothing existing changes. Note that meshes want a two-level
-// BVH (a per-mesh BLAS in local space, a TLAS over instances) rather than the
-// single flat BVH the analytic shapes use.
+// An instance of a mesh held by the scene's MeshLibrary. This is the
+// vertex-buffer path, and it is a handle rather than a Mesh by value on
+// purpose: the geometry is shared by every instance and lives in the library's
+// flat arrays, so an entity only needs to say WHICH mesh and WHERE it is.
+// Holding a Mesh here would copy every vertex per instance, which is exactly
+// the cost instancing exists to avoid.
+//
+// localBounds is cached from MeshLibrary::Range() so that bounds and BVH
+// gathering stay pure functions of the registry - see shapes.h, which would
+// otherwise need the library threaded through every dispatcher.
 struct MeshComponent
 {
-    Mesh mesh;
+    MeshHandle mesh = kNoMesh;
+    AABB localBounds = AABB::Empty();
 };
 
 // --- Physics.

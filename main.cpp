@@ -157,6 +157,19 @@ int main()
                 {
                     fpsCapEnabled = !fpsCapEnabled;
                 }
+                else if (event.key.scancode == SDL_SCANCODE_LEFTBRACKET)
+                {
+                    // Exposure is a display-time grade, so it deliberately does
+                    // NOT reset accumulation - the linear buffer is untouched
+                    // and the next frame simply tone-maps it differently.
+                    renderer.SetExposure(renderer.Exposure() / 1.25f);
+                    SDL_Log("Exposure: %.3f", renderer.Exposure());
+                }
+                else if (event.key.scancode == SDL_SCANCODE_RIGHTBRACKET)
+                {
+                    renderer.SetExposure(renderer.Exposure() * 1.25f);
+                    SDL_Log("Exposure: %.3f", renderer.Exposure());
+                }
                 break;
             }
         }
@@ -220,13 +233,14 @@ int main()
 
         char title[192] = {0};
         SDL_snprintf(title, sizeof(title),
-                     "%s | %.0f fps (%s, press V) | %zu nodes / %zu objects | %u spp | mouse: %s (Esc)",
+                     "%s | %.0f fps (%s, press V) | %zu nodes / %zu objects | %u spp | exp %.2f ([/]) | mouse: %s (Esc)",
                      renderer.DriverName(),
                      currentFps,
                      fpsCapEnabled ? "capped" : "uncapped",
                      renderer.NodeCount(),
                      renderer.ObjectCount(),
                      renderer.AccumulatedSamples(),
+                     renderer.Exposure(),
                      mouseCaptured ? "captured" : "free");
         SDL_SetWindowTitle(renderer.Window(), title);
 

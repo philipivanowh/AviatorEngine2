@@ -1,0 +1,77 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "app::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "shaders::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "SDL3-shared::@405c074760d2f6728126"
+		},
+		{
+			"id" : "SDL3_test::@405c074760d2f6728126"
+		},
+		{
+			"id" : "SDL_uclibc::@405c074760d2f6728126"
+		},
+		{
+			"id" : "SDL3_image-shared::@80cdc087d69ec7f1fccf"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"orderDependencies" : 
+	[
+		{
+			"id" : "app::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "shaders::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "SDL3-shared::@405c074760d2f6728126"
+		},
+		{
+			"id" : "SDL3_test::@405c074760d2f6728126"
+		},
+		{
+			"id" : "SDL_uclibc::@405c074760d2f6728126"
+		},
+		{
+			"id" : "SDL3_image-shared::@80cdc087d69ec7f1fccf"
+		}
+	],
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

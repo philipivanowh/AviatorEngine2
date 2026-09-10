@@ -3,26 +3,28 @@
 
 #include <SDL3/SDL.h>
 #include <algorithm>
+#include <cstdint>
 #include <numeric>
 #include <vector>
-
-#include <entt/entt.hpp>
 
 #include "scene/aabb.h"
 
 #define BVH_LEAF_SIZE 4
 
-// The BVH knows nothing about shapes any more. It is handed a flat list of
-// entities and their world-space bounds, and it hands back a reordered entity
-// list plus the node tree over it. That removes the pointer chase the old
-// version did through unique_ptr<Object> to call a virtual Bounds(), and means
-// adding a shape type never touches this file.
+// The BVH knows nothing about what it is built over. It is handed a flat list
+// of world-space (or local-space) AABBs and hands back the node tree plus a
+// permutation saying which primitive ended up in which leaf slot.
 //
-// Bounds are passed in rather than computed here because the caller already
-// walks the registry to gather them (see GatherRenderables in shapes.h), and
-// doing it in one pass keeps the component data in cache.
+// That last part is what makes this file reusable at both levels of the
+// two-level structure. The top level maps the permutation back to entities; a
+// mesh maps it back to triangles. Neither meaning lives here, which is why
+// this header no longer includes entt.
+//
+// Bounds are passed in rather than computed because the caller already walks
+// its own data to produce them (see GatherRenderables in shapes.h), and doing
+// it in one pass keeps that data in cache.
 
-// Mirrors BVHNode in path_trace.comp.hlsl byte-for-byte. Two float3s (Min,
+// Mirrors BVHNode in the compute shaders byte-for-byte. Two float3s (Min,
 // Max) each need a trailing pad float for the same 16-byte-boundary reason as
 // Object_GPU::pad0.
 struct BVHNode_GPU
@@ -37,47 +39,61 @@ struct BVHNode_GPU
     Sint32 pad_trailing;
 };
 
-class BVH_node
-{
-
-public:
-    AABB bbox;
-    int left;
-    int right;
-    int count;
-
-    BVH_node(AABB bbox, int left, int right, int count) : bbox(bbox), left(left), right(right), count(count)
-    {
-    }
-
-    BVHNode_GPU CreateBVHNodeGPU()
-    {
-        BVHNode_GPU bvh_node = {};
-        bvh_node.min_x = this->bbox.min_x;
-        bvh_node.min_y = this->bbox.min_y;
-        bvh_node.min_z = this->bbox.min_z;
-
-        bvh_node.max_x = this->bbox.max_x;
-        bvh_node.max_y = this->bbox.max_y;
-        bvh_node.max_z = this->bbox.max_z;
-
-        bvh_node.left = this->left;
-        bvh_node.right = this->right;
-        bvh_node.count = this->count;
-        return bvh_node;
-    }
-};
+static_assert(sizeof(BVHNode_GPU) == 48, "BVHNode_GPU must match the HLSL BVHNode stride");
 
 namespace detail
 {
+    // Turns a box into a node, inflating any axis that is flat.
+    //
+    // A perfectly axis-aligned primitive - a quad in the XY plane, or any face
+    // of Mesh::CreateBox - produces a zero-thickness AABB. The shader's slab
+    // test then computes (bmin - origin) * (1/0), and when the ray origin lies
+    // exactly in that plane it evaluates 0 * inf = NaN. Every NaN comparison is
+    // false, so the node is silently skipped and the primitive disappears from
+    // some angles but not others.
+    //
+    // bounds_minimum in aabb.h has existed for exactly this since before the
+    // BVH did; this is the first code to actually use it.
+    inline BVHNode_GPU MakeNode(const AABB &box, int left, int right, int count)
+    {
+        BVHNode_GPU node = {};
+
+        node.min_x = box.min_x;
+        node.min_y = box.min_y;
+        node.min_z = box.min_z;
+        node.max_x = box.max_x;
+        node.max_y = box.max_y;
+        node.max_z = box.max_z;
+
+        if (node.max_x - node.min_x < bounds_minimum)
+        {
+            node.min_x -= bounds_minimum * 0.5f;
+            node.max_x += bounds_minimum * 0.5f;
+        }
+        if (node.max_y - node.min_y < bounds_minimum)
+        {
+            node.min_y -= bounds_minimum * 0.5f;
+            node.max_y += bounds_minimum * 0.5f;
+        }
+        if (node.max_z - node.min_z < bounds_minimum)
+        {
+            node.min_z -= bounds_minimum * 0.5f;
+            node.max_z += bounds_minimum * 0.5f;
+        }
+
+        node.left = left;
+        node.right = right;
+        node.count = count;
+        return node;
+    }
+
     inline int BuildRecursive(
-        std::vector<int> &indices,
+        std::vector<uint32_t> &indices,
         int start,
         int end,
-        const std::vector<entt::entity> &entities,
         const std::vector<AABB> &bounds,
-        std::vector<BVH_node *> &outNodes,
-        std::vector<entt::entity> &outEntities)
+        std::vector<BVHNode_GPU> &outNodes,
+        std::vector<uint32_t> &outOrder)
     {
         AABB box = AABB::Empty();
         for (int i = start; i < end; i++)
@@ -88,17 +104,19 @@ namespace detail
         // Reserve this node before descending so its index remains stable
         // while recursive calls add its children.
         const int nodeIndex = static_cast<int>(outNodes.size());
-        outNodes.push_back(nullptr);
+        outNodes.push_back(BVHNode_GPU{});
 
         const int count = end - start;
         if (count <= BVH_LEAF_SIZE)
         {
-            const int first = static_cast<int>(outEntities.size());
+            // `left` on a leaf is the first slot in outOrder, not a node index.
+            // `count > 0` is what tells the shader which meaning to read.
+            const int first = static_cast<int>(outOrder.size());
             for (int i = start; i < end; i++)
             {
-                outEntities.push_back(entities[indices[i]]);
+                outOrder.push_back(indices[i]);
             }
-            outNodes[nodeIndex] = new BVH_node(box, first, -1, count);
+            outNodes[nodeIndex] = MakeNode(box, first, -1, count);
 
             return nodeIndex;
         }
@@ -109,53 +127,47 @@ namespace detail
             indices.begin() + start,
             indices.begin() + mid,
             indices.begin() + end,
-            [&](int a, int b)
+            [&](uint32_t a, uint32_t b)
             {
                 return bounds[a].Centroid(axis) < bounds[b].Centroid(axis);
             });
 
-        const int left = BuildRecursive(indices, start, mid, entities, bounds, outNodes, outEntities);
-        const int right = BuildRecursive(indices, mid, end, entities, bounds, outNodes, outEntities);
+        const int left = BuildRecursive(indices, start, mid, bounds, outNodes, outOrder);
+        const int right = BuildRecursive(indices, mid, end, bounds, outNodes, outOrder);
 
-        outNodes[nodeIndex] = new BVH_node(box, left, right, 0);
+        outNodes[nodeIndex] = MakeNode(box, left, right, 0);
 
         return nodeIndex;
     }
 }
 
-// `entities` and `bounds` are parallel arrays - bounds[i] is the world-space
-// AABB of entities[i]. GatherRenderables() produces both.
+// Builds a BVH over `bounds`. Node 0 is the root.
 //
-// outEntities comes back in leaf order, which is the order they must be
-// uploaded to the GPU in: BVH leaves address the object buffer by index, so
-// the shader's `objects[i]` has to be the same object this build put at i.
+// outOrder is a permutation of [0, bounds.size()): outOrder[i] is the index of
+// the primitive that the build placed at slot i, and leaves address primitives
+// by slot. The caller MUST reorder its own primitive data to match, because a
+// leaf saying "slots 4..7" means nothing otherwise. At the top level that is
+// the entity list; inside a mesh it is the index buffer.
 inline void BuildBVH(
-    const std::vector<entt::entity> &entities,
     const std::vector<AABB> &bounds,
-    std::vector<BVH_node *> &outNodes,
-    std::vector<entt::entity> &outEntities)
+    std::vector<BVHNode_GPU> &outNodes,
+    std::vector<uint32_t> &outOrder)
 {
-    SDL_assert(entities.size() == bounds.size());
-
-    for (BVH_node *node : outNodes)
-    {
-        delete node;
-    }
     outNodes.clear();
-    outEntities.clear();
+    outOrder.clear();
 
-    if (entities.empty())
+    if (bounds.empty())
     {
         return;
     }
 
-    outNodes.reserve(entities.size() * 2);
-    outEntities.reserve(entities.size());
+    outNodes.reserve(bounds.size() * 2);
+    outOrder.reserve(bounds.size());
 
-    std::vector<int> indices(entities.size());
-    std::iota(indices.begin(), indices.end(), 0);
+    std::vector<uint32_t> indices(bounds.size());
+    std::iota(indices.begin(), indices.end(), 0u);
 
-    detail::BuildRecursive(indices, 0, static_cast<int>(indices.size()), entities, bounds, outNodes, outEntities);
+    detail::BuildRecursive(indices, 0, static_cast<int>(indices.size()), bounds, outNodes, outOrder);
 }
 
 #endif // BVH_H

@@ -15,27 +15,12 @@
 #include <vector>
 
 // Sentinel stored in Object_GPU::textureID when a material has no image
-// texture. Must match INVALID_TEXTURE in shader.comp.hlsl.
+// texture. 
 static constexpr Uint32 kNoTexture = 0xFFFFFFFFu;
 
-// The shader samples one Texture2DArray, so every layer has to be the same
-// size. Textures larger than this are downsampled on upload; without a cap a
-// single 4K source would force every other layer up to 4096x4096 too (64 MB
-// each), which is how the old CreateTextureArray blew up on mixed sizes.
+// The shader samples one Texture2DArray
 static constexpr int kMaxTextureArrayDimension = 2048;
 
-// A Texture is plain CPU-side RGBA8 image data plus the layer index it will
-// occupy in the scene's GPU texture array. It is NOT a GPU resource on its own
-// - TextureLibrary::BuildGPUArray() packs every registered texture into a
-// single SDL_GPUTexture, which is the only thing the shader ever binds.
-//
-// Don't construct these directly; go through a TextureLibrary so the library
-// owns them and the ids stay in sync with the array layers:
-//
-//     Texture *brick = scene.textures.Load("brick/textures/red_brick_diff_4k.jpg");
-//
-// Solid colours do NOT need a Texture. A material's albedo already is a solid
-// colour - reach for a Texture only when you have actual image detail.
 class Texture
 {
 public:
@@ -148,7 +133,9 @@ public:
 
         SDL_GPUTextureCreateInfo info{};
         info.type = SDL_GPU_TEXTURETYPE_2D_ARRAY;
-        info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        
+        
+        info.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB;
         info.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
         info.width = static_cast<Uint32>(layerWidth);
         info.height = static_cast<Uint32>(layerHeight);
