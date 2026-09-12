@@ -1,5 +1,7 @@
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 
+cmake --build build
+
 
 dxc -spirv -T cs_6_0 -E main path_trace.comp.hlsl -Fo path_trace.comp.spv
 
