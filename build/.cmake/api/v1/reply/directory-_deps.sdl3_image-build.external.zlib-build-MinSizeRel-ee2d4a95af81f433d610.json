@@ -1,0 +1,124 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"build/_deps/sdl3_image-src/external/zlib/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 186,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 192,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 195,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 198,
+				"parent" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "C:/Program Files (x86)/app/lib",
+			"paths" : 
+			[
+				"_deps/sdl3_image-build/external/zlib-build/MinSizeRel/zlib.lib"
+			],
+			"targetId" : "zlib::@e2c4df609769603e5cb4",
+			"targetIndex" : 37,
+			"targetIsImportLibrary" : true,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "C:/Program Files (x86)/app/bin",
+			"paths" : 
+			[
+				"bin/MinSizeRel/zlib1.dll"
+			],
+			"targetId" : "zlib::@e2c4df609769603e5cb4",
+			"targetIndex" : 37,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "C:/Program Files (x86)/app/lib",
+			"paths" : 
+			[
+				"_deps/sdl3_image-build/external/zlib-build/MinSizeRel/zlibstatic.lib"
+			],
+			"targetId" : "zlibstatic::@e2c4df609769603e5cb4",
+			"targetIndex" : 38,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "C:/Program Files (x86)/app/include",
+			"paths" : 
+			[
+				"build/_deps/sdl3_image-build/external/zlib-build/zconf.h",
+				"build/_deps/sdl3_image-src/external/zlib/zlib.h"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "C:/Program Files (x86)/app/share/man/man3",
+			"paths" : 
+			[
+				"build/_deps/sdl3_image-src/external/zlib/zlib.3"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "Unspecified",
+			"destination" : "C:/Program Files (x86)/app/share/pkgconfig",
+			"paths" : 
+			[
+				"build/_deps/sdl3_image-build/external/zlib-build/zlib.pc"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "_deps/sdl3_image-build/external/zlib-build",
+		"source" : "build/_deps/sdl3_image-src/external/zlib"
+	}
+}

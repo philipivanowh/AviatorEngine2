@@ -14,6 +14,7 @@
 		<BuildDependency Project="_deps/sdl3-build/SDL_uclibc.vcxproj"/>
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="app.vcxproj"/>
+		<BuildDependency Project="physics_smoke.vcxproj"/>
 		<BuildDependency Project="shaders.vcxproj"/>
 	</Project>
 	<Project Path="INSTALL.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2e32294e-0534-3207-bb55-82fc7fad64d7">
@@ -52,6 +53,10 @@
 	<Project Path="_deps/sdl3_image-build/external/libwebp-build/libwebpmux.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b67fa991-cd9a-3bd8-9080-b0af07bc9cca">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 		<BuildDependency Project="_deps/sdl3_image-build/external/libwebp-build/webp.vcxproj"/>
+	</Project>
+	<Project Path="physics_smoke.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="75b637b8-5faa-3f09-96c8-6bd0894edd2f">
+		<BuildDependency Project="_deps/sdl3-build/SDL3-shared.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
 	</Project>
 	<Project Path="_deps/sdl3_image-build/external/libpng-build/png_genfiles.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3821f23a-cf45-3af7-b853-36d06027d15e">
 		<BuildDependency Project="ZERO_CHECK.vcxproj"/>

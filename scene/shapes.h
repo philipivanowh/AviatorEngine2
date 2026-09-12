@@ -150,6 +150,35 @@ inline AABB MeshBounds(const TransformComponent &t, const MeshComponent &m)
 
 // Everything that does not depend on the shape: position and the whole
 // material block. The old Object::BaseObjectGPU, minus the inheritance.
+// The rotation the SHADER treats as an object's current one. A previous
+// transform has to be expressed the same way, or the two will not cancel for an
+// object that never moved: a mesh instance carries a full quaternion, a sphere
+// or box only the yaw the shader rebuilds from UvRotation, and a quad or
+// triangle none at all, because its rotation is baked into its edge vectors.
+inline Quat<float> ShaderRotation(BodyShape shape, const Quat<float> &rotation)
+{
+    switch (shape)
+    {
+    case BodyShape::Mesh: return rotation;
+    case BodyShape::Sphere:
+    case BodyShape::Box: return QuatY(YawOf(rotation));
+    default: return Quat<float>(1.0f, 0.0f, 0.0f, 0.0f);
+    }
+}
+
+// Packs a rotation into the three floats Object_GPU reserves for it. Negating a
+// quaternion does not change the rotation it describes, so forcing w >= 0 costs
+// nothing and lets the shader rebuild w from the vector part alone.
+inline void StorePreviousRotation(Object_GPU &o, const Quat<float> &rotation)
+{
+    const Quat<float> q = rotation.w < 0.0f
+                              ? Quat<float>(-rotation.w, -rotation.x, -rotation.y, -rotation.z)
+                              : rotation;
+    o.prevRotX = q.x;
+    o.prevRotY = q.y;
+    o.prevRotZ = q.z;
+}
+
 inline Object_GPU BaseGPU(const TransformComponent &t, const Material &mat, BodyShape shape)
 {
     Object_GPU o = {};
@@ -158,12 +187,14 @@ inline Object_GPU BaseGPU(const TransformComponent &t, const Material &mat, Body
     o.y = t.position.y;
     o.z = t.position.z;
 
-    // Position2 is the shutter-close / previous-frame centre used for motion
-    // blur. Static for now, so it matches Position. Once physics runs, this is
-    // where last frame's position goes.
+    // Last frame's transform defaults to this frame's, i.e. "did not move".
+    // Renderer::ApplyPreviousTransforms overwrites it for every object it has
+    // seen before; anything new, and every object on the first frame, keeps
+    // this and reprojects onto itself.
     o.x2 = t.position.x;
     o.y2 = t.position.y;
     o.z2 = t.position.z;
+    StorePreviousRotation(o, ShaderRotation(shape, t.rotation));
 
     o.r = mat.albedo.x;
     o.g = mat.albedo.y;
@@ -177,6 +208,7 @@ inline Object_GPU BaseGPU(const TransformComponent &t, const Material &mat, Body
     o.shapeType = static_cast<Uint32>(shape);
     o.colorType = static_cast<Uint32>(mat.type);
     o.textureID = mat.TextureId();
+    o.textureTint = mat.textureTint;
 
     return o;
 }

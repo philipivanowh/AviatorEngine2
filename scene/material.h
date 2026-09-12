@@ -32,11 +32,17 @@ enum class MaterialType : Uint32
 //     Material::Dielectric(1.5f, Color(0.8f, 1.0f, 0.8f))  // tinted glass
 //     Material::Emissive(Color(1.0f, 0.9f, 0.8f), 15.0f)   // warm area light
 //
-// Any of them takes an optional image texture, which *multiplies* the albedo -
-// so albedo doubles as a tint. Leave the albedo white to show the texture as
-// authored:
+// Any of them takes an optional image texture, TINTED by the albedo. How much is
+// the material's textureTint: 0 shows the texture exactly as authored, 1 is a
+// full multiply (texture * albedo). The default is deliberately light - a
+// saturated albedo at full strength strips most of the texture's colour out.
+// A white albedo shows the texture as authored at any strength:
 //
 //     Material::Lambertian(Color(1, 1, 1)).Textured(scene.textures.Load("brick.jpg"))
+// Default albedo tint strength on a textured material. Raise it toward 1 for a
+// full texture * albedo multiply, lower it to 0 to show textures untouched.
+inline constexpr float kDefaultTextureTint = 0.25f;
+
 class Material
 {
 public:
@@ -88,10 +94,12 @@ public:
 
     // Returns a copy so it chains off a temporary:
     //     Material::Metal(white).Textured(tex)
-    Material Textured(const Texture *tex) const
+    //     Material::Lambertian(red).Textured(tex, 0.5f)   // stronger red tint
+    Material Textured(const Texture *tex, float tint = kDefaultTextureTint) const
     {
         Material material = *this;
         material.texture = tex;
+        material.textureTint = tint < 0.0f ? 0.0f : (tint > 1.0f ? 1.0f : tint);
         return material;
     }
 
@@ -105,6 +113,9 @@ public:
     float density = 0.0f;   //Volume only
     MaterialType type = MaterialType::Lambertian;
     const Texture *texture = nullptr; // non-owning; owned by TextureLibrary
+
+    // How strongly albedo tints `texture`, 0..1. Ignored without a texture.
+    float textureTint = kDefaultTextureTint;
 };
 
 #endif

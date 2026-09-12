@@ -10,6 +10,7 @@
 #include "core/color.h"
 #include "scene/material.h"
 #include "scene/mesh_library.h"
+#include "scene/gpu_types.h"
 
 // Components are plain data. Everything that used to be a virtual on Object
 // lives in shapes.h as a free function that reads these - see the note there
@@ -74,6 +75,62 @@ struct BoxComponent
     Vec3<float> halfExtent = Vec3<float>(1.0f, 1.0f, 1.0f);
 };
 
+// --- Physics components. IPhysicsWorld (physics/physicsWorld.h) reads these in
+// Build; during a frame it writes nothing but TransformComponent. Units are SI -
+// meters, kilograms, seconds - and the world is Y-up.
+
+// How a rigid body moves.
+enum class RigidbodyType : Uint32
+{
+    Dynamic = 0,   // moved by the solver: gravity, contacts, forces
+    Kinematic = 1, // moved by you, through TransformComponent. Pushes dynamic
+                   // bodies out of its way and is never pushed back.
+};
+
+// Makes an entity a simulated body. What it collides as comes from a
+// ColliderComponent on the same entity and/or ShapeOfComponent parts naming it.
+// A ColliderComponent with no RigidbodyComponent is static geometry instead.
+struct RigidbodyComponent
+{
+    RigidbodyType type = RigidbodyType::Dynamic;
+
+    // kg, spread over the body's colliders by volume. Ignored when kinematic.
+    float mass = 1.0f;
+
+    // Start velocity in world space. Build applies it, and so does every Reset.
+    Vec3<float> linearVelocity = Vec3<float>(0.0f, 0.0f, 0.0f);  // m/s
+    Vec3<float> angularVelocity = Vec3<float>(0.0f, 0.0f, 0.0f); // rad/s
+
+    int physicsBody_ID = -1; // written by Build; -1 until then
+};
+
+// What an entity collides as, independent of what it renders as. The two are
+// separate on purpose: a physics box is drawn as a MESH box, because an analytic
+// box can only show rotation about Y (see BoxToGPU in shapes.h), while its
+// collider is still an exact box.
+enum class ColliderShape : Uint32
+{
+    Sphere = 0,  // radius
+    Box = 1,     // halfExtent
+    Capsule = 2, // radius + halfHeight, the straight segment along local Y
+    Plane = 3,   // infinite, normal along local +Y. Static geometry only.
+};
+
+struct ColliderComponent
+{
+    ColliderShape shape = ColliderShape::Box;
+    Vec3<float> halfExtent = Vec3<float>(0.5f, 0.5f, 0.5f); // Box
+    float radius = 0.5f;                                    // Sphere, Capsule
+    float halfHeight = 0.5f;                                // Capsule: half the straight segment
+
+    // Surface response. Friction and bounce belong to the surface, not the body,
+    // which is why static geometry can have them too.
+    float friction = 0.5f;    // Coulomb coefficient; 0 is ice
+    float restitution = 0.0f; // 0 = no bounce, 1 = perfectly elastic
+
+    int collider_ID = -1; // written by Build; -1 until then
+};
+
 // An instance of a mesh held by the scene's MeshLibrary. This is the
 // vertex-buffer path, and it is a handle rather than a Mesh by value on
 // purpose: the geometry is shared by every instance and lives in the library's
@@ -88,22 +145,6 @@ struct MeshComponent
 {
     MeshHandle mesh = kNoMesh;
     AABB localBounds = AABB::Empty();
-};
-
-// --- Physics.
-
-enum class RigidbodyType
-{
-    Static,
-    Dynamic
-};
-
-struct RigidBodyComponent
-{
-    Vec3<float> velocity = Vec3<float>(0.0f);
-    Vec3<float> angularVelocity = Vec3<float>(0.0f);
-    float invMass = 0.0f; // 0 = infinite mass, i.e. immovable
-    RigidbodyType type = RigidbodyType::Static;
 };
 
 // Attached to collider entities that belong to a compound body: the shape's

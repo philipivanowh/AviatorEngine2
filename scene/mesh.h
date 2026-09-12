@@ -33,6 +33,13 @@ public:
 
     static Mesh CreateSphere(float radius, const uint16_t segments, uint16_t rings, const Material &material);
 
+    /*
+    Creates a flat parallelogram spanning the edge vectors u and v, centred on
+    its own middle - the mesh twin of an analytic quad. Register it with
+    MeshLibrary::Add(mesh, true): a quad has two visible sides.
+    */
+    static Mesh CreateQuad(const Vec3<float> &u, const Vec3<float> &v, const Material &material);
+
     // Data Accessors and Modifiers
 
     /*
@@ -230,6 +237,34 @@ inline Mesh Mesh::CreateSphere(float radius, const uint16_t segments, uint16_t r
     }
 
     return Mesh(verts, inds, AABB{-radius, -radius, -radius, radius, radius, radius});
+}
+
+// Corners are authored at 0, u, u + v and v. Their bounding box is centred on
+// (u + v) / 2 - a parallelogram is symmetric about its middle - so SetVertices
+// re-centres the vertices there, and an instance of this mesh belongs at
+// corner + (u + v) / 2. UVs run along u and v exactly like HitQuad's
+// (alpha, beta), and the winding is counter-clockwise seen from the side
+// cross(u, v) points to.
+inline Mesh Mesh::CreateQuad(const Vec3<float> &u, const Vec3<float> &v, const Material &material)
+{
+    const Vec3<float> n = normalize(cross(u, v));
+    const Vec3<float> corners[4] = {Vec3<float>(0.0f, 0.0f, 0.0f), u, u + v, v};
+    const float uvs[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
+
+    std::vector<Vertex> verts;
+    verts.reserve(4);
+    AABB bounds = AABB::Empty();
+    for (int i = 0; i < 4; i++)
+    {
+        const Vec3<float> &p = corners[i];
+        verts.push_back({p.x, p.y, p.z,
+                         material.albedo.x, material.albedo.y, material.albedo.z,
+                         n.x, n.y, n.z,
+                         uvs[i][0], uvs[i][1]});
+        bounds = SurroundPoint(bounds, p.x, p.y, p.z);
+    }
+
+    return Mesh(verts, {0, 1, 2, 0, 2, 3}, bounds);
 }
 
 #endif // MESH_H

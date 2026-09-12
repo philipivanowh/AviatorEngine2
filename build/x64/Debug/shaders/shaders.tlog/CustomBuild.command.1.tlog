@@ -1,3 +1,39 @@
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3CD2214AB21727B22B2F4CC54F6777A7\DEFERRED.COMP.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.357.0\Bin\dxc.exe -spirv -T cs_6_0 -E main C:/Users/hahoa/Documents/GitHub/AviatorEngine2/shaders/deferred.comp.hlsl -Fo C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/deferred.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3CD2214AB21727B22B2F4CC54F6777A7\GBUFFER.FRAG.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.357.0\Bin\dxc.exe -spirv -T ps_6_0 -E main C:/Users/hahoa/Documents/GitHub/AviatorEngine2/shaders/gbuffer.frag.hlsl -Fo C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/gbuffer.frag.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3CD2214AB21727B22B2F4CC54F6777A7\GBUFFER.VERT.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.357.0\Bin\dxc.exe -spirv -T vs_6_0 -E main C:/Users/hahoa/Documents/GitHub/AviatorEngine2/shaders/gbuffer.vert.hlsl -Fo C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/gbuffer.vert.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
 ^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3CD2214AB21727B22B2F4CC54F6777A7\PATH_TRACE.COMP.SPV.RULE
 setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
@@ -27,6 +63,18 @@ setlocal
 "C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
 if %errorlevel% neq 0 goto :cmEnd
 C:\VulkanSDK\1.4.357.0\Bin\dxc.exe -spirv -T cs_6_0 -E main C:/Users/hahoa/Documents/GitHub/AviatorEngine2/shaders/ray_trace.comp.hlsl -Fo C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/ray_trace.comp.spv
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\CMAKEFILES\3CD2214AB21727B22B2F4CC54F6777A7\UPSAMPLE.COMP.SPV.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin
+if %errorlevel% neq 0 goto :cmEnd
+C:\VulkanSDK\1.4.357.0\Bin\dxc.exe -spirv -T cs_6_0 -E main C:/Users/hahoa/Documents/GitHub/AviatorEngine2/shaders/upsample.comp.hlsl -Fo C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/bin/upsample.comp.spv
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

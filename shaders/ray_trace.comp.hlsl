@@ -854,6 +854,13 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
         {
                 break; // clear path to the light
             }
+            // TraverseBVH has no far bound, so a hit at or beyond the light is
+            // not between the surface and the light. Without this an occluder
+            // BEHIND a lamp shadowed everything the lamp should have lit.
+            if (shadowHit.Offset >= distance(lightPos, currentShadowRay.Origin) - 0.001f)
+            {
+                break;
+            }
             if (shadowHit.Object.ColorType == DIFFUSE_LIGHT)
             {
                 break; // hit the light itself - not occluded
@@ -882,8 +889,10 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
         }
     }
 
-    // Average the total light across all sources sampled
-    return directLighting / (float)NumLights;
+    // Every light was summed above, so this is already the full estimate.
+    // Dividing by NumLights here made an N-light scene N times too dark - that
+    // division is only right when ONE light is picked at random per sample.
+    return directLighting;
 }
 
 

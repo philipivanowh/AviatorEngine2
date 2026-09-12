@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/pybind11-populate"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/b00f1ccb851741d899b705867d88273b/pybind11-populate.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/565f9f5d01772cbdcfe58416403d83b8/pybind11-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/CMakeFiles/0134e6440e397a0453b279c3e04da9db/pybind11-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"pybind11-populate"
+		],
+		"name" : "pybind11-populate"
+	}
+}

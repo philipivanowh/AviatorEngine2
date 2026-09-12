@@ -1,0 +1,10 @@
+^C:\USERS\HAHOA\DOCUMENTS\GITHUB\AVIATORENGINE2\BUILD\_DEPS\PYBIND11-SUBBUILD\CMAKEFILES\B00F1CCB851741D899B705867D88273B\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild -BC:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-subbuild/pybind11-populate.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

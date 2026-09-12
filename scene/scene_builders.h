@@ -15,4 +15,8 @@
 void BuildFinalScene(Scene &scene, entt::registry &registry);
 void BuildTestAllFeatureScene(Scene &scene, entt::registry &registry);
 
+// A rigid-body playground for the physics backend: everything in it carries
+// RigidbodyComponent / ColliderComponent, so IPhysicsWorld::Build picks it up.
+void BuildPhysicsScene(Scene &scene, entt::registry &registry);
+
 #endif

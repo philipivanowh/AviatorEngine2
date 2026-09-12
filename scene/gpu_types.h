@@ -27,8 +27,16 @@ struct Object_GPU
 {
     // Position
     float x, y, z;
-    float pad0;
-    // Second Position
+
+    // Last frame's transform: the motion vector temporal reprojection follows,
+    // which is what lets it track a moving body instead of the camera alone.
+    // The rotation is the VECTOR part of a unit quaternion - the packer flips
+    // the sign when w < 0, so the shader rebuilds w = sqrt(1 - |xyz|^2) and a
+    // whole transform fits in padding this struct was already paying for.
+    float prevRotX;
+
+    // Last frame's position. Equal to Position for anything that did not move,
+    // which is what makes static geometry reproject exactly onto itself.
     float x2, y2, z2;
 
     // Sphere Radius
@@ -39,13 +47,13 @@ struct Object_GPU
     float u_y;
     float u_z;
 
-    float pad1;
+    float prevRotY;
 
     float v_x;
     float v_y;
     float v_z;
 
-    float pad2;
+    float prevRotZ;
 
     // Spin of the surface parameterisation about Y, in radians. Only meaningful
     // for spheres and boxes: rotating a sphere doesn't change its geometry, but
@@ -58,7 +66,9 @@ struct Object_GPU
     float emission;               // 84
     Uint32 instanceIndex;                // 88
 
-    float pad3;
+    // How strongly the albedo tints the texture, 0..1 (Material::textureTint).
+    // Was pad3 - the slot was free, so the stride stays 128.
+    float textureTint;            // 92
 
     // Materials
     float r, g, b;
@@ -96,6 +106,7 @@ static_assert(offsetof(Object_GPU, radius) == 28, "Object_GPU layout drifted fro
 static_assert(offsetof(Object_GPU, rotation) == 76, "Object_GPU layout drifted from the shader");
 static_assert(offsetof(Object_GPU, density) == 80, "Object_GPU layout drifted from the shader");
 static_assert(offsetof(Object_GPU, emission) == 84, "Object_GPU layout drifted from the shader");
+static_assert(offsetof(Object_GPU, textureTint) == 92, "Object_GPU layout drifted from the shader");
 static_assert(offsetof(Object_GPU, r) == 96, "Object_GPU layout drifted from the shader");
 static_assert(offsetof(Object_GPU, fuzz) == 108, "Object_GPU layout drifted from the shader");
 static_assert(offsetof(Object_GPU, textureID) == 124, "Object_GPU layout drifted from the shader");

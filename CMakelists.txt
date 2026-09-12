@@ -55,6 +55,7 @@ target_include_directories(entt INTERFACE "${DEPS_DIR}/entt")
 
 add_executable(${PROJECT_NAME}
     main.cpp
+    physics/physicsWorld.cpp
     renderer/renderer.cpp
     scene/scene_builders.cpp
     scene/stb_image_impl.cpp
@@ -68,11 +69,169 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${DEPS_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE 
-SDL3::SDL3 
+target_link_libraries(${PROJECT_NAME} PRIVATE
+SDL3::SDL3
 SDL3_image::SDL3_image
 entt
 )
+
+# --- Newton physics ---------------------------------------------------------
+#
+# The Newton backend (physics/newtonPhysicsWorld.cpp) embeds CPython and drives
+# NVIDIA Newton through physics/newton/aviator_newton.py - see
+# docs/newton_physics.md. It is optional in the strong sense: with it off, or
+# with its Python environment missing, physics/physicsWorld.cpp falls back to
+# the Null backend and the app still builds, runs and renders, just without
+# anything moving. So every problem found here is a WARNING that turns Newton
+# off, never a hard error that stops the build.
+option(AVIATOR_WITH_NEWTON "Build the Newton physics backend (embeds Python)" ON)
+set(AVIATOR_NEWTON_VENV "${CMAKE_SOURCE_DIR}/.venv-newton" CACHE PATH
+    "Python environment that has the newton and warp-lang packages installed")
+
+set(AVIATOR_NEWTON_ENABLED OFF)
+set(AVIATOR_NEWTON_PYTHON_DLLS "")
+
+if(NOT AVIATOR_WITH_NEWTON)
+    message(STATUS "Newton physics: OFF (AVIATOR_WITH_NEWTON) - the app will run the Null backend")
+else()
+    # Paths are normalised to forward slashes because they end up inside string
+    # literals in the compile definitions below, where a Windows backslash would
+    # be read as an escape ("C:\Users\..." contains \U).
+    get_filename_component(AVIATOR_NEWTON_VENV_ABS "${AVIATOR_NEWTON_VENV}" ABSOLUTE)
+    file(TO_CMAKE_PATH "${AVIATOR_NEWTON_VENV_ABS}" AVIATOR_NEWTON_VENV_ABS)
+    file(TO_CMAKE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/physics/newton" AVIATOR_NEWTON_BRIDGE_DIR)
+
+    if(WIN32)
+        set(AVIATOR_NEWTON_PYTHON "${AVIATOR_NEWTON_VENV_ABS}/Scripts/python.exe")
+    else()
+        set(AVIATOR_NEWTON_PYTHON "${AVIATOR_NEWTON_VENV_ABS}/bin/python3")
+    endif()
+
+    if(NOT EXISTS "${AVIATOR_NEWTON_PYTHON}")
+        message(WARNING
+            "Newton physics: OFF - ${AVIATOR_NEWTON_PYTHON} does not exist, so there is no "
+            "interpreter to embed and the app will run the Null backend. Create the environment:\n"
+            "    python -m venv \"${AVIATOR_NEWTON_VENV_ABS}\"\n"
+            "    \"${AVIATOR_NEWTON_PYTHON}\" -m pip install newton\n"
+            "and reconfigure, or point -DAVIATOR_NEWTON_VENV=<path> at an environment that "
+            "already has newton and warp-lang. -DAVIATOR_WITH_NEWTON=OFF silences this.")
+    else()
+        # Find Python THROUGH that interpreter. VIRTUAL_ENV plus
+        # FIND_VIRTUALENV=ONLY is how FindPython resolves a venv: the
+        # interpreter comes from the venv, while Development.Embed (Python.h and
+        # the import library, which a venv does not have) comes from the base
+        # installation the venv was created from. Both the Python3_ and the
+        # Python_ variables are pinned because pybind11 searches the unversioned
+        # namespace, and two namespaces resolving to two different interpreters
+        # is a mismatch that only shows up as a crash at runtime.
+        set(ENV{VIRTUAL_ENV} "${AVIATOR_NEWTON_VENV_ABS}")
+        set(Python3_FIND_VIRTUALENV ONLY)
+        set(Python_FIND_VIRTUALENV ONLY)
+        set(Python3_EXECUTABLE "${AVIATOR_NEWTON_PYTHON}")
+        set(Python_EXECUTABLE "${AVIATOR_NEWTON_PYTHON}")
+        find_package(Python3 COMPONENTS Interpreter Development.Embed)
+
+        if(NOT Python3_FOUND)
+            message(WARNING
+                "Newton physics: OFF - ${AVIATOR_NEWTON_PYTHON} was found but its "
+                "Development.Embed artifacts were not (Python.h and the import library live in "
+                "the base installation the venv was created from; installing the \"Python "
+                "development headers\" or the full python.org installer provides them). "
+                "The app will run the Null backend.")
+        else()
+            # A missing newton package is not a build problem - the backend
+            # compiles and logs a Python ImportError at start-up, then the Null
+            # backend takes over - but saying so now saves that round trip.
+            execute_process(
+                COMMAND "${Python3_EXECUTABLE}" -c
+                        "import importlib.util as u, sys; sys.exit(0 if u.find_spec('newton') and u.find_spec('warp') else 1)"
+                RESULT_VARIABLE AVIATOR_NEWTON_IMPORTABLE
+                OUTPUT_QUIET ERROR_QUIET)
+            if(NOT AVIATOR_NEWTON_IMPORTABLE EQUAL 0)
+                message(WARNING
+                    "Newton physics: the environment ${AVIATOR_NEWTON_VENV_ABS} has no newton "
+                    "and/or warp package. The backend will build, but it will fail to start and "
+                    "fall back to the Null backend. Install them with:\n"
+                    "    \"${AVIATOR_NEWTON_PYTHON}\" -m pip install newton")
+            endif()
+
+            # pybind11 in FindPython mode reuses the Python found above instead
+            # of running its own (deprecated) search. embed.h is what lets the
+            # backend start the interpreter from a PyConfig, and pybind11 is also
+            # what makes a Debug build link the RELEASE python DLL: it undefines
+            # _DEBUG around Python.h so MSVC does not ask for python3xx_d.lib,
+            # which a normal python.org installation does not ship.
+            set(PYBIND11_FINDPYTHON ON CACHE BOOL "" FORCE)
+            set(PYBIND11_INSTALL OFF CACHE BOOL "" FORCE)
+            set(PYBIND11_TEST OFF CACHE BOOL "" FORCE)
+            FetchContent_Declare(pybind11
+                GIT_REPOSITORY https://github.com/pybind/pybind11.git
+                GIT_TAG        v3.1.0
+                GIT_SHALLOW    TRUE
+            )
+            FetchContent_MakeAvailable(pybind11)
+
+            # python3xx.dll is next to the BASE installation's python.exe, which
+            # is nowhere near our executables, and the loader only searches the
+            # executable's own directory and PATH. Staging it (below, with the
+            # SDL DLLs) is what makes launching from Visual Studio or from
+            # Explorer work without Python on PATH.
+            execute_process(
+                COMMAND "${Python3_EXECUTABLE}" -c "import sys; print(sys.base_prefix)"
+                OUTPUT_VARIABLE AVIATOR_PYTHON_BASE
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
+            file(TO_CMAKE_PATH "${AVIATOR_PYTHON_BASE}" AVIATOR_PYTHON_BASE)
+            if(WIN32)
+                file(GLOB AVIATOR_NEWTON_PYTHON_DLLS "${AVIATOR_PYTHON_BASE}/python3*.dll")
+                if(NOT AVIATOR_NEWTON_PYTHON_DLLS)
+                    message(WARNING
+                        "Newton physics: no python3*.dll found in ${AVIATOR_PYTHON_BASE}, so the "
+                        "executables will only run with that directory on PATH.")
+                endif()
+            endif()
+
+            set(AVIATOR_NEWTON_ENABLED ON)
+            message(STATUS "Newton physics: ON - Python ${Python3_VERSION} from ${AVIATOR_NEWTON_VENV_ABS}")
+        endif()
+    endif()
+endif()
+
+if(AVIATOR_NEWTON_ENABLED)
+    target_sources(${PROJECT_NAME} PRIVATE physics/newtonPhysicsWorld.cpp)
+
+    # A console smoke test for the backend on its own: no window, no renderer,
+    # no scene helpers - it builds a registry out of components, steps it and
+    # exits non-zero if the simulation is wrong. It is the thing to run after
+    # touching either side of the bridge.
+    add_executable(physics_smoke
+        physics/physicsWorld.cpp
+        physics/newtonPhysicsWorld.cpp
+        physics/tests/physicsSmoke.cpp
+    )
+    target_include_directories(physics_smoke PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${DEPS_DIR}
+    )
+    target_link_libraries(physics_smoke PRIVATE
+        SDL3::SDL3
+        entt
+    )
+
+    foreach(AVIATOR_NEWTON_TARGET ${PROJECT_NAME} physics_smoke)
+        target_link_libraries(${AVIATOR_NEWTON_TARGET} PRIVATE pybind11::embed)
+        # AVIATOR_NEWTON_VENV is the default environment and the bridge
+        # directory is where aviator_newton.py lives; both are absolute, because
+        # the executable's working directory is whatever launched it.
+        # PhysicsSettings::pythonEnvironment and $AVIATOR_NEWTON_VENV override
+        # the first at runtime.
+        target_compile_definitions(${AVIATOR_NEWTON_TARGET} PRIVATE
+            AVIATOR_WITH_NEWTON=1
+            AVIATOR_NEWTON_VENV="${AVIATOR_NEWTON_VENV_ABS}"
+            AVIATOR_NEWTON_BRIDGE_DIR="${AVIATOR_NEWTON_BRIDGE_DIR}"
+        )
+    endforeach()
+endif()
 
 # --- Shaders ----------------------------------------------------------------
 #
@@ -87,13 +246,17 @@ entt
 find_program(DXC_EXECUTABLE
     NAMES dxc
     HINTS $ENV{VULKAN_SDK}/Bin $ENV{VULKAN_SDK}/bin
-    DOC "DirectX Shader Compiler, used to build the compute shaders"
+    DOC "DirectX Shader Compiler, used to build the shaders"
 )
 
 set(SHADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/ray_trace.comp.hlsl
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/ray_trace.comp.hybrid.hlsl
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/path_trace.comp.hlsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/gbuffer.vert.hlsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/gbuffer.frag.hlsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/deferred.comp.hlsl
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/upsample.comp.hlsl
 )
 
 if(DXC_EXECUTABLE)
@@ -105,16 +268,28 @@ if(DXC_EXECUTABLE)
         string(REGEX REPLACE "\\.hlsl$" "" SHADER_NAME ${SHADER_FILE})
         set(SHADER_SPV ${BINARY_DIR}/${SHADER_NAME}.spv)
 
+        # The stage is encoded in the trailing extension. Anything that is not
+        # explicitly .vert or .frag compiles as compute, which keeps the
+        # existing "ray_trace.comp.hybrid.hlsl" name working - it has .comp in
+        # the middle rather than at the end.
+        if(SHADER_NAME MATCHES "\\.vert$")
+            set(SHADER_PROFILE vs_6_0)
+        elseif(SHADER_NAME MATCHES "\\.frag$")
+            set(SHADER_PROFILE ps_6_0)
+        else()
+            set(SHADER_PROFILE cs_6_0)
+        endif()
+
         add_custom_command(
             OUTPUT ${SHADER_SPV}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${BINARY_DIR}
             # No -fspv-target-env: the default (vulkan1.0) emits SPIR-V 1.0,
             # which is what SDL's Vulkan backend validates against. Asking for
             # vulkan1.3 emits SPIR-V 1.6 and spirv-val rejects the module.
-            COMMAND ${DXC_EXECUTABLE} -spirv -T cs_6_0 -E main
+            COMMAND ${DXC_EXECUTABLE} -spirv -T ${SHADER_PROFILE} -E main
                     ${SHADER} -Fo ${SHADER_SPV}
             DEPENDS ${SHADER}
-            COMMENT "Compiling ${SHADER_NAME}.hlsl -> ${SHADER_NAME}.spv"
+            COMMENT "Compiling ${SHADER_NAME}.hlsl (${SHADER_PROFILE}) -> ${SHADER_NAME}.spv"
             VERBATIM
         )
         list(APPEND COMPILED_SHADERS ${SHADER_SPV})
@@ -146,4 +321,28 @@ if(WIN32)
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
         COMMAND_EXPAND_LISTS
     )
+
+    # The same for the Newton targets, plus the Python runtime: python3xx.dll is
+    # linked through an import library, so nothing in TARGET_RUNTIME_DLLS knows
+    # about it and the loader would have to find it on PATH.
+    if(AVIATOR_NEWTON_ENABLED)
+        foreach(AVIATOR_NEWTON_TARGET ${PROJECT_NAME} physics_smoke)
+            if(NOT AVIATOR_NEWTON_TARGET STREQUAL PROJECT_NAME)
+                add_custom_command(TARGET ${AVIATOR_NEWTON_TARGET} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        $<TARGET_RUNTIME_DLLS:${AVIATOR_NEWTON_TARGET}>
+                        $<TARGET_FILE_DIR:${AVIATOR_NEWTON_TARGET}>
+                    COMMAND_EXPAND_LISTS
+                )
+            endif()
+            if(AVIATOR_NEWTON_PYTHON_DLLS)
+                add_custom_command(TARGET ${AVIATOR_NEWTON_TARGET} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        ${AVIATOR_NEWTON_PYTHON_DLLS}
+                        $<TARGET_FILE_DIR:${AVIATOR_NEWTON_TARGET}>
+                    COMMENT "Staging the Python runtime next to ${AVIATOR_NEWTON_TARGET}"
+                )
+            endif()
+        endforeach()
+    endif()
 endif()

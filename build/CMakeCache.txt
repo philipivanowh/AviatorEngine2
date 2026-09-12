@@ -14,6 +14,13 @@
 # EXTERNAL cache entries
 ########################
 
+//Python environment that has the newton and warp-lang packages
+// installed
+AVIATOR_NEWTON_VENV:PATH=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/.venv-newton
+
+//Build the Newton physics backend (embeds Python)
+AVIATOR_WITH_NEWTON:BOOL=ON
+
 //Path to a program.
 AWK:FILEPATH=C:/w64devkit/bin/awk.exe
 
@@ -273,7 +280,7 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 // libpng
 DFA_XTRA:FILEPATH=
 
-//DirectX Shader Compiler, used to build the compute shaders
+//DirectX Shader Compiler, used to build the shaders
 DXC_EXECUTABLE:FILEPATH=C:/VulkanSDK/1.4.357.0/Bin/dxc.exe
 
 //Directory under which to collect all populated content
@@ -287,6 +294,10 @@ FETCHCONTENT_FULLY_DISCONNECTED:BOOL=OFF
 FETCHCONTENT_QUIET:BOOL=ON
 
 //When not empty, overrides where to find pre-populated content
+// for pybind11
+FETCHCONTENT_SOURCE_DIR_PYBIND11:PATH=
+
+//When not empty, overrides where to find pre-populated content
 // for SDL3
 FETCHCONTENT_SOURCE_DIR_SDL3:PATH=
 
@@ -296,6 +307,9 @@ FETCHCONTENT_SOURCE_DIR_SDL3_IMAGE:PATH=
 
 //Enables UPDATE_DISCONNECTED behavior for all content population
 FETCHCONTENT_UPDATES_DISCONNECTED:BOOL=OFF
+
+//Enables UPDATE_DISCONNECTED behavior just for population of pybind11
+FETCHCONTENT_UPDATES_DISCONNECTED_PYBIND11:BOOL=OFF
 
 //Enables UPDATE_DISCONNECTED behavior just for population of SDL3
 FETCHCONTENT_UPDATES_DISCONNECTED_SDL3:BOOL=OFF
@@ -384,6 +398,30 @@ PNG_TESTS:BOOL=OFF
 
 //Build the libpng tools
 PNG_TOOLS:BOOL=ON
+
+//To enforce that a handle_type_name<> specialization exists
+PYBIND11_DISABLE_HANDLE_TYPE_NAME_DEFAULT_IMPLEMENTATION:BOOL=OFF
+
+PYBIND11_FINDPYTHON:BOOL=ON
+
+//Install pybind11 header files?
+PYBIND11_INSTALL:BOOL=OFF
+
+//Override the ABI version, may be used to enable the unstable
+// ABI.
+PYBIND11_INTERNALS_VERSION:STRING=
+
+//Disable search for Python
+PYBIND11_NOPYTHON:BOOL=OFF
+
+//Use simpler GIL management logic that does not support disassociation
+PYBIND11_SIMPLE_GIL_MANAGEMENT:BOOL=OFF
+
+//Build pybind11 test suite?
+PYBIND11_TEST:BOOL=OFF
+
+//Respect CMAKE_CROSSCOMPILING
+PYBIND11_USE_CROSSCOMPILING:BOOL=OFF
 
 //Value Computed by CMake
 SDL3_BINARY_DIR:STATIC=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/sdl3-build
@@ -910,6 +948,15 @@ libpng_SOURCE_DIR:STATIC=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_d
 //Dependencies for the target
 libwebpmux_LIB_DEPENDS:STATIC=general;webp;
 
+//Value Computed by CMake
+pybind11_BINARY_DIR:STATIC=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-build
+
+//Value Computed by CMake
+pybind11_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+pybind11_SOURCE_DIR:STATIC=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-src
+
 //Dependencies for the target
 webp_LIB_DEPENDS:STATIC=general;sharpyuv;general;shlwapi;general;ole32;general;windowscodecs;
 
@@ -1055,7 +1102,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MT
 CMAKE_MT-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=7
 //Platform information initialized
 CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //noop for ranlib
@@ -1127,10 +1174,14 @@ COMPILER_SUPPORTS_W3:INTERNAL=1
 FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[opengl32][ ][v()]
 //Details about finding PkgConfig
 FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig:INTERNAL=[C:/w64devkit/bin/pkg-config.exe][v0.34.0()]
+//Details about finding Python3
+FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[C:/Users/hahoa/Documents/GitHub/AviatorEngine2/.venv-newton/Scripts/python.exe][C:/Users/hahoa/AppData/Local/Programs/Python/Python311/libs/python311.lib][C:/Users/hahoa/AppData/Local/Programs/Python/Python311/Include][found components: Interpreter Development.Embed ][v3.11.6()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //ADVANCED property for variable: GIT_EXECUTABLE
 GIT_EXECUTABLE-ADVANCED:INTERNAL=1
+//Test HAS_MSVC_GL_LTCG
+HAS_MSVC_GL_LTCG:INTERNAL=1
 //Have include alloca.h
 HAVE_ALLOCA_H:INTERNAL=
 //Have include audioclient.h
@@ -1512,6 +1563,13 @@ PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
 PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
 //STRINGS property for variable: PNG_INTEL_SSE
 PNG_INTEL_SSE-STRINGS:INTERNAL=on;off
+PYBIND11_INCLUDE_DIR:INTERNAL=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-src/include
+//Python executable during the last CMake run
+PYBIND11_PYTHON_EXECUTABLE_LAST:INTERNAL=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/.venv-newton/Scripts/python.exe
+//Python debug status
+PYTHON_IS_DEBUG:INTERNAL=0
+PYTHON_MODULE_DEBUG_POSTFIX:INTERNAL=
+PYTHON_MODULE_EXTENSION:INTERNAL=.cp311-win_amd64.pyd
 //ADVANCED property for variable: SDL_CHECK_REQUIRED_INCLUDES
 SDL_CHECK_REQUIRED_INCLUDES-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: SDL_CHECK_REQUIRED_LINK_OPTIONS
@@ -1538,5 +1596,36 @@ Z_HAVE_UNISTD_H:INTERNAL=
 _ALLOCA_IN_MALLOC_H:INTERNAL=1
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/app
+_PYBIND11_CROSSCOMPILING:INTERNAL=OFF
+_Python:INTERNAL=Python3
+//Compiler reason failure
+_Python3_Compiler_REASON_FAILURE:INTERNAL=
+_Python3_DEVELOPMENT_EMBED_SIGNATURE:INTERNAL=73e1611f37761b539ccbe07a67dd2363
+//Development reason failure
+_Python3_Development_REASON_FAILURE:INTERNAL=
+_Python3_EXECUTABLE:INTERNAL=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/.venv-newton/Scripts/python.exe
+//Path to a program.
+_Python3_EXECUTABLE_DEBUG:INTERNAL=_Python3_EXECUTABLE_DEBUG-NOTFOUND
+//Path to a file.
+_Python3_INCLUDE_DIR:INTERNAL=C:/Users/hahoa/AppData/Local/Programs/Python/Python311/Include
+//Python3 Properties
+_Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;11;6;64;<none>;cp311-win_amd64;;C:\Users\hahoa\AppData\Local\Programs\Python\Python311\Lib;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\.venv-newton\Lib;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\.venv-newton\Lib\site-packages;C:\Users\hahoa\Documents\GitHub\AviatorEngine2\.venv-newton\Lib\site-packages
+_Python3_INTERPRETER_SIGNATURE:INTERNAL=557ad9521aae9d123c58ff497b22ac31
+//Interpreter reason failure
+_Python3_Interpreter_REASON_FAILURE:INTERNAL=
+//Path to a library.
+_Python3_LIBRARY_DEBUG:INTERNAL=_Python3_LIBRARY_DEBUG-NOTFOUND
+//Path to a library.
+_Python3_LIBRARY_RELEASE:INTERNAL=C:/Users/hahoa/AppData/Local/Programs/Python/Python311/libs/python311.lib
+//NumPy reason failure
+_Python3_NumPy_REASON_FAILURE:INTERNAL=
+//Path to a library.
+_Python3_RUNTIME_LIBRARY_RELEASE:INTERNAL=C:/Users/hahoa/AppData/Local/Programs/Python/Python311/python311.dll
 __pkg_config_checked_PC_LibUSB:INTERNAL=1
+//True if pybind11 and all required components found on the system
+pybind11_FOUND:INTERNAL=TRUE
+//Directory where pybind11 headers are located
+pybind11_INCLUDE_DIR:INTERNAL=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-src/include
+//Directories where pybind11 and possibly Python headers are located
+pybind11_INCLUDE_DIRS:INTERNAL=C:/Users/hahoa/Documents/GitHub/AviatorEngine2/build/_deps/pybind11-src/include;C:/Users/hahoa/AppData/Local/Programs/Python/Python311/Include
 

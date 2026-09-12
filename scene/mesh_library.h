@@ -55,6 +55,10 @@ struct MeshRange
     uint32_t triangleCount = 0;
     uint32_t blasBase = 0;
     AABB localBounds = AABB::Empty();
+
+    // Both faces visible, so the rasterizer must not cull it. True for open
+    // surfaces such as quads; closed meshes get back-face culling for free.
+    bool doubleSided = false;
 };
 
 class MeshLibrary
@@ -62,7 +66,7 @@ class MeshLibrary
 public:
     // Appends a mesh and builds its BLAS. Returns the handle, which is the
     // index into `ranges` and stays valid for the life of the library.
-    MeshHandle Add(const Mesh &mesh);
+    MeshHandle Add(const Mesh &mesh, bool doubleSided = false);
 
     const MeshRange &Range(MeshHandle handle) const
     {
@@ -84,12 +88,13 @@ private:
     std::vector<MeshRange> ranges;
 };
 
-inline MeshHandle MeshLibrary::Add(const Mesh &mesh)
+inline MeshHandle MeshLibrary::Add(const Mesh &mesh, bool doubleSided)
 {
     MeshRange range = {};
     range.vertexBase = static_cast<uint32_t>(vertices.size());
     range.indexBase = static_cast<uint32_t>(indices.size());
     range.blasBase = static_cast<uint32_t>(blas.size());
+    range.doubleSided = doubleSided;
 
     // 1. Vertices, verbatim and LOCAL. They stay local because that is the
     //    whole point of instancing: the same geometry is reused by every

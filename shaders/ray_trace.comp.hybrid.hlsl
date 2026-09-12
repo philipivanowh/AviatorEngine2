@@ -72,7 +72,9 @@ struct Object
     float Density;
     float Emission;
     uint InstanceIndex;
-    float pad3;
+    // How strongly Albedo tints the texture - see SurfaceAlbedo. Unused
+    // without a texture.
+    float TextureTint;
 
     float3 Albedo;
     float Fuzz;
@@ -141,7 +143,18 @@ cbuffer UniformBuffer : register(b0, space2)
     uint RenderType;
     uint NumLights;
     float Exposure;
-    float padding5;
+
+    // Config's hybrid tail, declared only as far as DisplayOnly - the one field
+    // of it this shader reads. Offsets must match Config in renderer.h.
+    uint DebugViewUnused;
+    float ZNearUnused;
+    float ZFarUnused;
+    float JitterXUnused;
+    float JitterYUnused;
+    // 1 once accumulation has reached maxSamples: re-tone-map, trace nothing.
+    uint DisplayOnly;
+    float padding7;
+    float padding8;
 };
 
 // Mirrors MeshInstance_GPU in scene/gpu_types.h byte for byte. Scalars, not
@@ -914,18 +927,25 @@ float3 textureColor(uint textureID, float2 uv)
 
 
 
-// The surface colour of a hit: the material's flat albedo, tinted by its image
-// texture if it has one. Multiplying (rather than letting the texture replace
-// the albedo) means albedo doubles as a tint - leave it white to show a texture
-// exactly as authored.
+// The surface colour of a hit: the material's flat albedo, or its image texture
+// TINTED by that albedo. TextureTint says how much: 0 shows the texture exactly
+// as authored, 1 is a full multiply (texture * albedo), and the default set in
+// material.h sits well toward 0 - a saturated albedo at full strength strips
+// most of the texture's own colour out.
+//
+// This is the ONLY place a texture meets albedo. Direct light, emission and the
+// bounce throughput all go through it; the bounce loop used to multiply by the
+// flat Albedo instead, so a textured surface lit mostly by bounce light showed
+// its material colour with the texture barely visible.
 float3 SurfaceAlbedo(const in Hit hit)
 {
-    float3 albedo = hit.Object.Albedo;
-    if (hit.Object.TextureID != INVALID_TEXTURE)
+    if (hit.Object.TextureID == INVALID_TEXTURE)
     {
-        albedo = textureColor(hit.Object.TextureID, hit.surface_uv);
+        return hit.Object.Albedo;
     }
-    return albedo;
+
+    const float3 texel = textureColor(hit.Object.TextureID, hit.surface_uv);
+    return texel * lerp(float3(1.0f, 1.0f, 1.0f), hit.Object.Albedo, hit.Object.TextureTint);
 }
 
 // Light leaving the surface toward the ray, independent of any bounce.
@@ -1150,6 +1170,13 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
         {
                 break; // clear path to the light
             }
+            // TraverseBVH has no far bound, so a hit at or beyond the light is
+            // not between the surface and the light. Without this an occluder
+            // BEHIND a lamp shadowed everything the lamp should have lit.
+            if (shadowHit.Offset >= distance(lightPos, currentShadowRay.Origin) - 0.001f)
+            {
+                break;
+            }
             if (shadowHit.Object.ColorType == DIFFUSE_LIGHT)
             {
                 break; // hit the light itself - not occluded
@@ -1178,8 +1205,10 @@ float3 CalculateDirectLight(Hit surfaceHit, Ray originalRay)
         }
     }
 
-    // Average the total light across all sources sampled
-    return directLighting / (float)NumLights;
+    // Every light was summed above, so this is already the full estimate.
+    // Dividing by NumLights here made an N-light scene N times too dark - that
+    // division is only right when ONE light is picked at random per sample.
+    return directLighting;
 }
 
 
@@ -1269,7 +1298,9 @@ float3 ColorRay(Ray ray)
         // Apply surface albedo attenuation
         if (hit.Object.ColorType != DIELECTRIC)
         {
-            throughput *= hit.Object.Albedo;
+            // Texture included: the flat Albedo alone ignores the texture on
+            // every bounce - see SurfaceAlbedo.
+            throughput *= SurfaceAlbedo(hit);
         }
 
         // Russian roulette: with diffuse indirect bounces back in play,
@@ -1302,6 +1333,16 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     {
         return;
     }
+
+    // Converged (RendererSettings::maxSamples): the accumulation is finished,
+    // so trace nothing and only re-grade it. Exposure is applied here rather
+    // than in the blit, which is why the pass runs at all.
+    if (DisplayOnly != 0)
+    {
+        displayImage[id] = float4(LinearToSRGB(ToneMapACES(image[id].rgb * Exposure)), 1.0f);
+        return;
+    }
+
     seed = id.x + id.y * Width + Batch * Width * Height + 1u;
     const float3 vectorW = normalize(Source - Target);
     const float3 vectorU = normalize(cross(Up, vectorW));
